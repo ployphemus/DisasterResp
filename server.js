@@ -20,12 +20,14 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(flash());
 const userRouter = require("./routes/user.route");
+const shelterRouter = require("./routes/shelter.route");
 
 /*
  * Routes
  */
 app.use("/database", databaseRouter);
 app.use("/users", userRouter);
+app.use("/shelters", shelterRouter);
 
 app.get("/", (req, res) => {
   res.render("index", { title: "Home" });
