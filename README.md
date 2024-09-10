@@ -10,7 +10,7 @@
    > npm install
    > This line will grab all the saved modules in the package.json and install the modules
 4. Once all the modules are installed. Stay in VS Code terminal and type this line in:
-   > npx nodemon
+   > npx nodemon OR npm start
    > This line should default to running nodemon on the server.js
 5. Open this link in your browser:
    > https://localhost:8000
