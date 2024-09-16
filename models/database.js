@@ -5,7 +5,7 @@ const mysql = require("mysql");
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "", // insert your own password
+  password: "", // insert your own password for your sql
   database: "nodemysql",
 });
 
