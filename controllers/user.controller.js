@@ -158,6 +158,20 @@ async function getUserByPhoneNumber(req, res, next) {
   }
 }
 
+async function getUserByEmail(req, res, next) {
+  console.log("getUserByEmail called");
+  try {
+    let email = req.params.email;
+    const user = await model.getUserByEmail(email);
+    console.log("User fetched:", user);
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user" });
+    console.error(err);
+    next(err);
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -167,4 +181,5 @@ module.exports = {
   deleteUserById,
   updateUserPhoneNumberById,
   getUserByPhoneNumber,
+  getUserByEmail,
 };

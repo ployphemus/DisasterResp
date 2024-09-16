@@ -92,6 +92,17 @@ async function getUserByPhoneNumber(phoneNumber) {
   }
 }
 
+async function getUserByEmail(email) {
+  const sql = "SELECT * FROM users WHERE Email = ?";
+  try {
+    const user = await db.get(sql, [email]);
+    return user;
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    throw err;
+  }
+}
+
 module.exports = {
   getAll,
   getUserById,
@@ -101,4 +112,5 @@ module.exports = {
   deleteUserById,
   updateUserPhoneNumberById,
   getUserByPhoneNumber,
+  getUserByEmail,
 };
