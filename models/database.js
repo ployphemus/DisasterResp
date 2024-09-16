@@ -35,10 +35,11 @@ database.get("/createusers", (req, res) => {
         id INT AUTO_INCREMENT,
         First_Name VARCHAR(255),
         Last_Name VARCHAR(255),
-        Phone_Number bigint,
-        Password VARCHAR(255),
-        Latitude decimal(9,6),
-        Longitude decimal(9,6),
+        Phone_Number BIGINT NOT NULL UNIQUE,
+        Password VARCHAR(255) NOT NULL,
+        Latitude DECIMAL(9,6),
+        Longitude DECIMAL(9,6),
+        Email VARCHAR(255) NOT NULL UNIQUE,
         PRIMARY KEY (id)
     )`;
   db.query(createTableSql, (err, result) => {
