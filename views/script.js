@@ -7,7 +7,7 @@ function initMap() {
         center: location,
     });
 
-    // Optional: Add a marker to the map at the specified location
+    // \Add a marker to the map at the center location
     const marker = new google.maps.Marker({
         position: location,
         map: map,
