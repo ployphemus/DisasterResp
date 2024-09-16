@@ -12,5 +12,6 @@ router.put("/updateLocation/:id", userController.updateUserLocationById);
 router.delete("/delete/:id", userController.deleteUserById);
 router.put("/updatePhoneNumber/:id", userController.updateUserPhoneNumberById);
 router.get("/phoneNumber/:phoneNumber", userController.getUserByPhoneNumber);
+router.get("/email/:email", userController.getUserByEmail);
 
 module.exports = router;
