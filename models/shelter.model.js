@@ -35,8 +35,45 @@ async function createShelter(params) {
   }
 }
 
+async function updateShelterCapByID(params) {
+  const sql = "UPDATE shelters SET Current_Capacity = ? WHERE id = ?";
+  try {
+    const shelter = await db.run(sql, params);
+    return shelter;
+  } catch (err) {
+    console.error("Error updating shelter capacity:", err);
+    throw err;
+  }
+}
+
+async function updateShelterByID(params) {
+  const sql =
+    "UPDATE shelters SET Name = ?, Latitude = ?, Longitude = ?, Maximum_Capacity = ?, Current_Capacity = ? WHERE id = ?";
+  try {
+    const shelter = await db.run(sql, params);
+    return shelter;
+  } catch (err) {
+    console.error("Error updating shelter:", err);
+    throw err;
+  }
+}
+
+async function deleteShelterByID(id) {
+  const sql = "DELETE FROM shelters WHERE id = ?";
+  try {
+    const shelter = await db.run(sql, [id]);
+    return shelter;
+  } catch (err) {
+    console.error("Error deleting shelter:", err);
+    throw err;
+  }
+}
+
 module.exports = {
   getAll,
   getShelterById,
   createShelter,
+  updateShelterCapByID,
+  updateShelterByID,
+  deleteShelterByID,
 };
