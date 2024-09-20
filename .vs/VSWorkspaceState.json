@@ -1,13 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\.idea",
     "\\controllers",
-    "\\models",
-    "\\public",
-    "\\routes",
-    "\\views"
+    "\\models"
   ],
-  "SelectedNode": "\\.idea\\DisasterResp.iml",
   "PreviewInSolutionExplorer": false
 }
