@@ -35,13 +35,15 @@ database.get("/createusers", (req, res) => {
         id INT AUTO_INCREMENT,
         First_Name VARCHAR(255),
         Last_Name VARCHAR(255),
-        Phone_Number BIGINT NOT NULL UNIQUE,
         Password VARCHAR(255) NOT NULL,
         Latitude DECIMAL(9,6),
         Longitude DECIMAL(9,6),
         Email VARCHAR(255) NOT NULL UNIQUE,
+        userType ENUM('USER', 'ADMIN') DEFAULT 'USER',
         PRIMARY KEY (id)
     )`;
+
+
   db.query(createTableSql, (err, result) => {
     if (err) throw err;
     console.log(result);
@@ -54,7 +56,6 @@ database.get("/registeruser", (req, res) => {
   let user = {
     First_Name: "first",
     Last_Name: "last",
-    Phone_Number: 7192871956,
     Password: "password",
   };
   let sql = "INSERT INTO users SET ?";
@@ -76,7 +77,7 @@ database.get("/user/:id", (req, res) => {
 });
 
 // Update user location
-database.get("/updateuser/:id", (req, res) => {
+database.get("/updateuserlocation/:id", (req, res) => {
   let userId = req.params.id;
   let newLatitude = 1.2;
   let newLongitude = -5.823;
@@ -86,6 +87,58 @@ database.get("/updateuser/:id", (req, res) => {
     console.log(result);
     res.send("Location updated");
   });
+});
+
+// Update user details
+database.post("/updateuser/:id", (req, res) => {
+    const userId = req.params.id;
+    const { First_Name, Last_Name, Password, Latitude, Longitude, Email, userType } = req.body;
+
+    let updateFields = [];
+    let updateValues = [];
+
+    if (First_Name) {
+        updateFields.push("First_Name = ?");
+        updateValues.push(First_Name);
+    }
+    if (Last_Name) {
+        updateFields.push("Last_Name = ?");
+        updateValues.push(Last_Name);
+    }
+    if (Password) {
+        updateFields.push("Password = ?");
+        updateValues.push(Password);
+    }
+    if (Latitude) {
+        updateFields.push("Latitude = ?");
+        updateValues.push(Latitude);
+    }
+    if (Longitude) {
+        updateFields.push("Longitude = ?");
+        updateValues.push(Longitude);
+    }
+    if (Email) {
+        updateFields.push("Email = ?");
+        updateValues.push(Email);
+    }
+    if (userType) {
+        updateFields.push("userType = ?");
+        updateValues.push(userType);
+    }
+
+    // If no fields to update, return an error
+    if (updateFields.length === 0) {
+        return res.status(400).send("No fields provided for update.");
+    }
+
+    updateValues.push(userId); // Add userId to the values array for WHERE clause
+
+    let updateQuery = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
+
+    db.query(updateQuery, updateValues, (err, result) => {
+        if (err) throw err;
+        res.send(`User updated successfully`);
+    });
 });
 
 // Remove a user

@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\Jun\\OneDrive - UNCG\\490\\testing\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Jun\\OneDrive - UNCG\\490\\testing\\controllers\\user.controller.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:controllers\\user.controller.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Jun\\OneDrive - UNCG\\490\\testing\\models\\database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:models\\database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Jun\\OneDrive - UNCG\\490\\testing\\controllers\\user.controller.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:controllers\\user.controller.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Jun\\OneDrive - UNCG\\490\\testing\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
@@ -22,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -38,7 +38,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "user.controller.js",
               "DocumentMoniker": "C:\\Users\\Jun\\OneDrive - UNCG\\490\\testing\\controllers\\user.controller.js",
               "RelativeDocumentMoniker": "controllers\\user.controller.js",
@@ -46,8 +46,7 @@
               "RelativeToolTip": "controllers\\user.controller.js",
               "ViewState": "AgIAAKEAAAAAAAAAAAAAALkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2024-09-16T18:34:00.449Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-09-16T18:34:00.449Z"
             },
             {
               "$type": "Document",
@@ -63,15 +62,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "database.js",
               "DocumentMoniker": "C:\\Users\\Jun\\OneDrive - UNCG\\490\\testing\\models\\database.js",
               "RelativeDocumentMoniker": "models\\database.js",
               "ToolTip": "C:\\Users\\Jun\\OneDrive - UNCG\\490\\testing\\models\\database.js",
               "RelativeToolTip": "models\\database.js",
-              "ViewState": "AgIAAH4AAAAAAAAAAAAAAAUAAAAUAAAAAAAAAA==",
+              "ViewState": "AgIAAFcAAAAAAAAAAAAAAGoAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2024-09-16T18:17:15.037Z"
+              "WhenOpened": "2024-09-16T18:17:15.037Z",
+              "EditorCaption": ""
             }
           ]
         }
