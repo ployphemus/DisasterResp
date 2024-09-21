@@ -35,13 +35,15 @@ database.get("/createusers", (req, res) => {
         id INT AUTO_INCREMENT,
         First_Name VARCHAR(255),
         Last_Name VARCHAR(255),
-        Phone_Number BIGINT NOT NULL UNIQUE,
         Password VARCHAR(255) NOT NULL,
         Latitude DECIMAL(9,6),
         Longitude DECIMAL(9,6),
         Email VARCHAR(255) NOT NULL UNIQUE,
+        userType ENUM('USER', 'ADMIN') DEFAULT 'USER',
         PRIMARY KEY (id)
     )`;
+
+
   db.query(createTableSql, (err, result) => {
     if (err) throw err;
     console.log(result);
@@ -54,7 +56,6 @@ database.get("/registeruser", (req, res) => {
   let user = {
     First_Name: "first",
     Last_Name: "last",
-    Phone_Number: 7192871956,
     Password: "password",
   };
   let sql = "INSERT INTO users SET ?";
@@ -76,7 +77,7 @@ database.get("/user/:id", (req, res) => {
 });
 
 // Update user location
-database.get("/updateuser/:id", (req, res) => {
+database.get("/updateuserlocation/:id", (req, res) => {
   let userId = req.params.id;
   let newLatitude = 1.2;
   let newLongitude = -5.823;
@@ -86,6 +87,70 @@ database.get("/updateuser/:id", (req, res) => {
     console.log(result);
     res.send("Location updated");
   });
+});
+
+// Update user details
+database.post("/updateuser/:id", (req, res) => {
+    const userId = req.params.id;
+    const { First_Name, Last_Name, Password, Latitude, Longitude, Email, userType } = req.body;
+
+    let updateFields = [];
+    let updateValues = [];
+
+    if (First_Name) {
+        updateFields.push("First_Name = ?");
+        updateValues.push(First_Name);
+    }
+    if (Last_Name) {
+        updateFields.push("Last_Name = ?");
+        updateValues.push(Last_Name);
+    }
+    if (Password) {
+        updateFields.push("Password = ?");
+        updateValues.push(Password);
+    }
+    if (Latitude) {
+        updateFields.push("Latitude = ?");
+        updateValues.push(Latitude);
+    }
+    if (Longitude) {
+        updateFields.push("Longitude = ?");
+        updateValues.push(Longitude);
+    }
+    if (Email) {
+        updateFields.push("Email = ?");
+        updateValues.push(Email);
+    }
+    if (userType) {
+        updateFields.push("userType = ?");
+        updateValues.push(userType);
+    }
+
+    // If no fields to update, return an error
+    if (updateFields.length === 0) {
+        return res.status(400).send("No fields provided for update.");
+    }
+
+    updateValues.push(userId); // Add userId to the values array for WHERE clause
+
+    let updateQuery = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
+
+    db.query(updateQuery, updateValues, (err, result) => {
+        if (err) throw err;
+        res.send(`User updated successfully`);
+    });
+});
+
+// Remove a user
+database.delete("/removeuser/:id", (req, res) => {
+    let userID = req.params.id;
+    let deleteTornadoSql = `DELETE FROM users WHERE id = ?`;
+
+    db.query(deleteTornadoSql, [userID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send(`Tornado entry with ID ${userID} removed`);
+    });
 });
 
 // Create shelters table
@@ -167,6 +232,232 @@ function run(sql, params = []) {
     });
   });
 }
+
+
+// Hurricane table
+database.get("/createhurricanes", (req, res) => {
+    let createTableSql = `CREATE TABLE IF NOT EXISTS hurricanes (
+        id INT AUTO_INCREMENT,
+        Name VARCHAR(255),
+        Latitude decimal(9,6),
+        Longitude decimal(9,6),
+        Wind decimal(5,2),
+        PRIMARY KEY (id)
+    )`;
+    db.query(createTableSql, (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Hurricanes table created");
+    });
+});
+
+// Update hurricane
+database.get("/updatehurricane/:id", (req, res) => {
+    let hurricaneID = req.params.id;
+    let newLatitude = 1.2;
+    let newLongitude = -5.823;
+    let newWind = 100.34;
+    let sql = "UPDATE hurricanes SET Latitude = ?, Longitude = ?, Wind = ? WHERE id = ?";
+    db.query(sql, [newLatitude, newLongitude, newWind, hurricaneID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Hurricane updated");
+    });
+});
+
+// Remove a hurricane
+database.delete("/removehurricane/:id", (req, res) => {
+    let hurricaneID = req.params.id;
+    let deleteTornadoSql = `DELETE FROM hurricanes WHERE id = ?`;
+
+    db.query(deleteTornadoSql, [hurricaneID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send(`Hurricane entry with ID ${hurricaneID} removed`);
+    });
+});
+
+// Flood table
+database.get("/createfloods", (req, res) => {
+    let createTableSql = `CREATE TABLE IF NOT EXISTS floods (
+        id INT AUTO_INCREMENT,
+        Latitude decimal(9,6),
+        Longitude decimal(9,6),
+        Water_Level decimal(5,2),
+        PRIMARY KEY (id)
+    )`;
+    db.query(createTableSql, (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Floods table created");
+    });
+});
+
+// Update flood
+database.get("/updateflood/:id", (req, res) => {
+    let floodID = req.params.id;
+    let newLatitude = 1.2;
+    let newLongitude = -5.823;
+    let newWaterLevel = 20;
+    let sql = "UPDATE floods SET Latitude = ?, Longitude = ?, Water_Level = ? WHERE id = ?";
+    db.query(sql, [newLatitude, newLongitude, newWaterLevel, floodID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Flood updated");
+    });
+});
+
+// Remove a flood
+database.delete("/removeflood/:id", (req, res) => {
+    let floodID = req.params.id;
+    let sql = `DELETE FROM floods WHERE id = ?`;
+
+    db.query(sql, [floodID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send(`Flood entry with ID ${floodID} removed`);
+    });
+});
+
+// Fires table
+database.get("/createfires", (req, res) => {
+    let createTableSql = `CREATE TABLE IF NOT EXISTS fires (
+        id INT AUTO_INCREMENT,
+        Latitude decimal(9,6),
+        Longitude decimal(9,6),
+        Temperature decimal(6,2),
+        PRIMARY KEY (id)
+    )`;
+    db.query(createTableSql, (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Fires table created");
+    });
+});
+
+// Update fire
+database.get("/updateflood/:id", (req, res) => {
+    let fireID = req.params.id;
+    let newLatitude = 1.2;
+    let newLongitude = -5.823;
+    let newTemperature = 1200.69;
+    let sql = "UPDATE fires SET Latitude = ?, Longitude = ?, Temperature = ? WHERE id = ?";
+    db.query(sql, [newLatitude, newLongitude, newTemperature, fireID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Fire updated");
+    });
+});
+
+// Remove a fire
+database.delete("/removefire/:id", (req, res) => {
+    let fireID = req.params.id;
+    let sql = `DELETE FROM fires WHERE id = ?`;
+
+    db.query(sql, [fireID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send(`Fire entry with ID ${fireID} removed`);
+    });
+});
+
+// Tornadoes table
+database.get("/createtornadoes", (req, res) => {
+    let createTableSql = `CREATE TABLE IF NOT EXISTS tornadoes (
+        id INT AUTO_INCREMENT,
+        Latitude decimal(9,6),
+        Longitude decimal(9,6),
+        Wind decimal(5,2),
+        PRIMARY KEY (id)
+    )`;
+    db.query(createTableSql, (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Fires table created");
+    });
+});
+
+// Update tornado
+database.get("/updatetornado/:id", (req, res) => {
+    let tornadoID = req.params.id;
+    let newLatitude = 1.2;
+    let newLongitude = -5.823;
+    let newWind = 250.32;
+    let sql = "UPDATE tornadoes SET Latitude = ?, Longitude = ?, Wind = ? WHERE id = ?";
+    db.query(sql, [newLatitude, newLongitude, newWind, tornadoID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Tornado updated");
+    });
+});
+
+// Remove a tornado
+database.delete("/removetornado/:id", (req, res) => {
+    let tornadoID = req.params.id;
+    let sql = `DELETE FROM tornado WHERE id = ?`;
+
+    db.query(sql, [tornadoID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send(`Tornado entry with ID ${tornadoID} removed`);
+    });
+});
+
+// Earthquakes table
+database.get("/createearthquakes", (req, res) => {
+    let createTableSql = `CREATE TABLE IF NOT EXISTS earthquakes (
+        id INT AUTO_INCREMENT,
+        Latitude decimal(9,6),
+        Longitude decimal(9,6),
+        Magnitude decimal(4,2),
+        PRIMARY KEY (id)
+    )`;
+    db.query(createTableSql, (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Earthquakes table created");
+    });
+});
+
+// Remove an earthquake
+database.delete("/removeearthquake/:id", (req, res) => {
+    let earthquakeID = req.params.id;
+    let sql = `DELETE FROM earthquakes WHERE id = ?`;
+
+    db.query(sql, [earthquakeID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send(`Eartquake entry with ID ${earthquakeID} removed`);
+    });
+});
+
+// Landslides table
+database.get("/createlandslides", (req, res) => {
+    let createTableSql = `CREATE TABLE IF NOT EXISTS landslides (
+        id INT AUTO_INCREMENT,
+        Latitude decimal(9,6),
+        Longitude decimal(9,6),
+        PRIMARY KEY (id)
+    )`;
+    db.query(createTableSql, (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send("Landslides table created");
+    });
+});
+
+// Remove a landslide
+database.delete("/removelandslide/:id", (req, res) => {
+    let landslideID = req.params.id;
+    let sql = `DELETE FROM landslides WHERE id = ?`;
+
+    db.query(sql, [landslideID], (err, result) => {
+        if (err) throw err;
+        console.log(result);
+        res.send(`Landslide entry with ID ${landslideID} removed`);
+    });
+});
+
 
 module.exports = {
   router: database,
