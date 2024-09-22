@@ -13,7 +13,11 @@ const multer = require("multer");
 const flash = require("connect-flash");
 //const dbConnect = require("./models/db-connect");
 const { router: databaseRouter } = require("./models/database");
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const session = require("express-session");
 // const upload = multer;
+
 app.use(multer().none());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -21,13 +25,32 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(flash());
 const userRouter = require("./routes/user.route");
 const shelterRouter = require("./routes/shelter.route");
+const disasterRouter = require("./routes/disaster.route");
+
+//
+app.use(
+  session({
+    secret: "your-session-secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(flash());
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+const authRouter = require("./auth/auth.route");
 
 /*
  * Routes
  */
 app.use("/database", databaseRouter);
+app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/shelters", shelterRouter);
+app.use("/disasters", disasterRouter);
 
 app.get("/", (req, res) => {
   res.render("index", { title: "Home" });

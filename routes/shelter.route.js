@@ -1,3 +1,8 @@
+/**
+ * This module contains the routers for the shelter routes by calling the appropriate shelter controller function.
+ * @module routes/shelter.route
+ * @file This file contains the routers for the shelter routes by calling the appropriate shelter controller function.
+ */
 "use strict";
 const express = require("express");
 const router = express.Router();

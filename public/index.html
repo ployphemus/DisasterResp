@@ -1,76 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Easy Rescue</title>
-  <style>
-    body {
-      font-family: Georgia, 'Arial Narrow', Arial, serif
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Easy Rescue</title>
+    <style>
+      body {
+        font-family: Georgia, "Arial Narrow", Arial, serif;
+      }
 
-    .nav {
-      height: 50px;
-      border-bottom: 1px solid;
-      display: flex;
-      align-items: center;
-    }
+      .nav {
+        height: 50px;
+        border-bottom: 1px solid;
+        display: flex;
+        align-items: center;
+      }
 
-    .nav-right {
-      font-family: sans-serif;
-      display: flex;
-      margin-left: auto;
-    }
+      .nav-right {
+        font-family: sans-serif;
+        display: flex;
+        margin-left: auto;
+      }
 
-    .nav-item {
-      margin-left: 20px;
-      margin-right: 20px;
-    }
+      .nav-item {
+        margin-left: 20px;
+        margin-right: 20px;
+      }
 
-    a {
-      color: black;
-      text-decoration: none;
-    }
+      a {
+        color: black;
+        text-decoration: none;
+      }
 
-    a:hover {
-      color: gray;
-      cursor: pointer;
-    }
+      a:hover {
+        color: gray;
+        cursor: pointer;
+      }
 
-    /* Set the size of the map */
-    #map {
-      height: 50vh; /* 50% height */
-      width: 50%; /* 50% width */
-    }
-  </style>
-</head>
-<body>
+      /* Set the size of the map */
+      #map {
+        height: 50vh; /* 50% height */
+        width: 50%; /* 50% width */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Nave Bar -->
+    <div class="nav">
+      <div class="nav-item">Dashboard</div>
+      <div class="nav-right">
+        <!--log out will take user back to login page, needs to be changed once connected to database-->
+        <div class="nav-item"><a href="/auth/logout">Log out</a></div>
+      </div>
+    </div>
 
-<!-- Nave Bar -->
-<div class="nav">
-  <div class="nav-item">Dashboard</div>
-  <div class="nav-right">
-    <!--log out will take user back to login page, needs to be changed once connected to database-->
-    <div class="nav-item"><a href="login.html">Log out</a></div>
-  </div>
-</div>
+    <!-- Content -->
+    <div class="row">
+      <div class="leftside"></div>
+    </div>
 
-<!-- Content -->
-<div class="row">
-  <div class="leftside">
+    <!-- The div element where the map will be displayed -->
+    <div id="map"></div>
 
-  </div>
-</div>
+    <!-- Load the Google Maps API-->
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&callback=initMap"
+    ></script>
 
-<!-- The div element where the map will be displayed -->
-<div id="map"></div>
-
-<!-- Load the Google Maps API-->
-<script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&callback=initMap">
-</script>
-
-<!-- calling script.js to initialize the map -->
-<script src="script.js" defer></script>
-</body>
+    <!-- calling script.js to initialize the map -->
+    <script src="script.js" defer></script>
+  </body>
 </html>
