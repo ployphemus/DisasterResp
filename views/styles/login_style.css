@@ -44,3 +44,9 @@ input[type=email], input[type=password] {
     margin-right: auto;
     width: 50%;
 }
+
+.copyright {
+    margin-left: auto;
+    padding-left: 100px;
+    padding-top: 100px;
+}

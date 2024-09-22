@@ -39,9 +39,15 @@ body {
 /*    padding: 20px;*/
 /*}*/
 
+.logo {
+    padding-left: 20px;
+    padding-bottom: 5px;
+}
+
 .main {
     flex: 70%;
-    padding: 20px;
+    padding-left: 20px;
+    padding-top: 50px;
 }
 
 a {
@@ -91,6 +97,12 @@ button:hover {
     color: #0a0a23;
     background-color: #ddd;
     border-radius: 5px;
+}
+
+.copyright {
+    margin-left: auto;
+    padding-left: 100px;
+    padding-top: 100px;
 }
 
 /* Set the size of the map */

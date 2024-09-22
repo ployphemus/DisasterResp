@@ -1,6 +1,17 @@
 body {font-family: Arial, Helvetica, sans-serif;}
 * {box-sizing: border-box}
 
+.logo {
+    padding-left: 20px;
+    padding-bottom: 5px;
+}
+
+.copyright {
+    margin-left: auto;
+    padding-left: 100px;
+    padding-top: 100px;
+}
+
 /* Full-width input fields */
 input[type=text], input[type=password] {
     width: 100%;

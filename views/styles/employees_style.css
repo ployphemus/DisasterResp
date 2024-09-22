@@ -2,6 +2,18 @@
     margin-top:50px;
     margin-left:200px;
 }
+
+.logo {
+    padding-left: 20px;
+    padding-bottom: 5px;
+}
+
 body {
     font-family: Garamond, serif;
+}
+
+.copyright {
+    margin-left: auto;
+    padding-left: 100px;
+    padding-top: 100px;
 }
