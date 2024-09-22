@@ -66,12 +66,13 @@
   </head>
   <body>
     <img src="logo.jpg" alt="logo" width="700" height="600" class="center" />
-    <form>
+    <form action="/auth/login" method="POST">
       <div class="form-group">
         <input
           type="email"
           class="form-control"
-          id="email"
+          id="Email"
+          name="Email"
           aria-describedby="email"
           placeholder="Email Address"
         />
@@ -79,7 +80,8 @@
       <div class="form-group">
         <input
           type="password"
-          id="inputPassword"
+          id="Password"
+          name="Password"
           class="form-control"
           aria-describedby="password"
           placeholder="Password"
@@ -88,12 +90,13 @@
           Password must be 6-20 characters long
         </small>
       </div>
-      <!--login info not required until it's set up-->
-      <button type="submit" class="btn btn-primary">
-        <a href="index.html">Login</a>
-      </button>
-      <button type="submit" class="btn btn-primary">
-        <a href="signup.html">Sign up</a>
+      <button type="submit" class="btn btn-primary">Login</button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        onclick="window.location.href='signup.html'"
+      >
+        Sign up
       </button>
     </form>
 
