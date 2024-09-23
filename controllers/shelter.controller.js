@@ -1,3 +1,8 @@
+/**
+ * This module contains the controller functions for the shelter routes by calling the appropriate shelter model function.
+ * @module controllers/shelter.controller
+ * @file This file contains the controller functions for the shelter routes by calling the appropriate shelter model function.
+ */
 "use strict";
 const express = require("express");
 const app = express();
@@ -8,6 +13,12 @@ app.use(express.json());
 
 const model = require("../models/shelter.model");
 
+/**
+ * This function getAllShelters() is used to get all the shelters from the database by calling the getAll() function from the shelter.model.js file.
+ * @param {*} req The request object
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 async function getAllShelters(req, res, next) {
   console.log("getAllShelters called");
   try {
@@ -21,6 +32,12 @@ async function getAllShelters(req, res, next) {
   }
 }
 
+/**
+ * This function getShelterById() is used to get a shelter by their ID from the database by calling the getShelterById() function from the shelter.model.js file.
+ * @param {*} req The request object containing the paramaters of the shelter to get from req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 async function getShelterById(req, res, next) {
   console.log("getShelterById called");
   try {
@@ -35,6 +52,12 @@ async function getShelterById(req, res, next) {
   }
 }
 
+/**
+ * This function createShelter() is used to create a new shelter in the database by calling the createShelter() function from the shelter.model.js file.
+ * @param {*} req The request object containing the paramaters of the shelter to create from req.body
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 async function createShelter(req, res, next) {
   console.log("createShelter called");
   try {
@@ -55,6 +78,12 @@ async function createShelter(req, res, next) {
   }
 }
 
+/**
+ * This function updateShelterCapByID() is used to update the current capacity of a shelter by their ID in the database by calling the updateShelterCapByID() function from the shelter.model.js file.
+ * @param {*} req The request object containing the paramaters of the shelter to update from req.body and req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 async function updateShelterCapByID(req, res, next) {
   console.log("updateShelterCapByID called");
   try {
@@ -71,6 +100,12 @@ async function updateShelterCapByID(req, res, next) {
   }
 }
 
+/**
+ * This function updateShelterByID() is used to update a shelter by their ID in the database by calling the updateShelterByID() function from the shelter.model.js file.
+ * @param {*} req The request object containing the paramaters of the shelter to update from req.body and req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 async function updateShelterByID(req, res, next) {
   console.log("updateShelterByID called");
   try {
@@ -98,6 +133,12 @@ async function updateShelterByID(req, res, next) {
   }
 }
 
+/**
+ * This function deleteShelterByID() is used to delete a shelter by their ID in the database by calling the deleteShelterByID() function from the shelter.model.js file.
+ * @param {*} req The request object containing the paramaters of the shelter to delete from req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 async function deleteShelterByID(req, res, next) {
   console.log("deleteShelterByID called");
   try {
