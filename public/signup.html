@@ -4,79 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Easy Rescue</title>
-<style>
-    body {font-family: Arial, Helvetica, sans-serif;}
-    * {box-sizing: border-box}
-
-    /* Full-width input fields */
-    input[type=text], input[type=password], input[type=number] {
-        width: 100%;
-        padding: 15px;
-        margin: 5px 0 22px 0;
-        display: inline-block;
-        border: none;
-        background: #f1f1f1;
-    }
-
-    input[type=text]:focus, input[type=password]:focus, input[type=number]:focus {
-        background-color: #ddd;
-        outline: none;
-    }
-
-    hr {
-        border: 1px solid #f1f1f1;
-        margin-bottom: 25px;
-    }
-
-    /* Set a style for all buttons */
-    button {
-        background-color: #04AA6D;
-        color: white;
-        padding: 14px 20px;
-        margin: 8px 0;
-        border: none;
-        cursor: pointer;
-        width: 100%;
-        opacity: 0.9;
-    }
-
-    button:hover {
-        opacity:1;
-    }
-
-    /* Extra styles for the cancel button */
-    .cancelbtn {
-        padding: 14px 20px;
-        background-color: #f44336;
-    }
-
-    /* Float cancel and signup buttons and add an equal width */
-    .cancelbtn, .signupbtn {
-        float: left;
-        width: 50%;
-    }
-
-    /* Add padding to container elements */
-    .container {
-        padding: 16px;
-    }
-
-    /* Clear floats */
-    .clearfix::after {
-        content: "";
-        clear: both;
-        display: table;
-    }
-
-    /* Change styles for cancel button and signup button on extra small screens */
-    @media screen and (max-width: 300px) {
-        .cancelbtn, .signupbtn {
-            width: 100%;
-        }
-    }
-</style>
+    <link rel="stylesheet" href="../styles/signup_style.css">
 <body>
-
+<div class="logo">
+    <a href="index.html"><img src="logo.png" width="100" height="auto"></a>
+</div>
 
 <!-- action="/action_page.php" -->
 <form action="/users/createNewUser" method="POST" style="border:1px solid #ccc">
@@ -111,5 +43,8 @@
     </div>
 </form>
 
+<footer class="copyright" style="color: black">
+    <p>© 2024, Easy Rescue LLC</p>
+</footer>
 </body>
 </html>

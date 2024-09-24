@@ -24,6 +24,13 @@ async function getAllUsers(req, res, next) {
   try {
     const users = await model.getAll();
     console.log("Users fetched:", users);
+    /*
+    if (req.accepts("html")) {
+      //res.render("users", { users: users });
+    } else {
+      res.json(users);
+    } 
+    */
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch users" });
@@ -98,8 +105,11 @@ async function createNewUser(req, res, next) {
     const params = [firstName, lastName, password, latitude, longitude, email];
     const user = await model.createNewUser(params);
     console.log("User created:", user);
-    res.json(user);
-    res.redirect("/login.html"); // Change this later to EJS file
+    if (req.accepts("html") && !req.accepts("json")) {
+      res.render("/login.html", { user: user });
+    } else {
+      res.json(user);
+    }
   } catch (err) {
     res.status(500).json({ error: "Failed to create user" });
     console.error(err);
