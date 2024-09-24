@@ -45,15 +45,22 @@ router.post("/login", function (req, res, next) {
     }
     if (!user) {
       req.flash("error", info.message);
-      //return res.redirect("/auth/login");
-      return res.json({ status: "error", code: "unauthorized" });
+      if (req.accepts("html")) {
+        return res.redirect("/login.html");
+      } else {
+        return res.json({ status: "error", code: "unauthorized" });
+      }
     }
     req.logIn(user, function (err) {
       if (err) {
         return next(err);
       }
-      return res.redirect("/");
-      //return res.json({ status: "success", code: "authorized" });
+
+      if (req.accepts("html")) {
+        return res.redirect("/");
+      } else {
+        return res.json({ status: "success", code: "authorized" });
+      }
     });
   })(req, res, next);
 });
@@ -64,23 +71,8 @@ router.post("/login", function (req, res, next) {
  * This is a GET request.
  */
 router.get("/logout", function (req, res) {
-  req.logOut(function (err) {
-    if (err) {
-      console.log(err);
-      return res.status(500).json({ status: "error", code: "server error" });
-    }
-    //return res.redirect("/");
-    return res.status(200).json({ status: "success", code: "logged out" });
-  });
-});
-
-/**
- * This is the logout route that will be used to log users out.
- * This is a POST request.
- */
-router.post("/logout", function (req, res) {
   if (!req.user) {
-    return res.json({ status: "error", code: "unauthorized" });
+    return res.status(401).json({ status: "error", code: "unauthorized" });
   }
 
   req.logout(function (err) {
@@ -90,12 +82,61 @@ router.post("/logout", function (req, res) {
         .json({ status: "error", code: "server error", message: err.message });
     }
 
-    // Check if the user is still in the session to confirm they have been logged out
-    if (req.user) {
-      return res.status(400).json({ status: "error", code: "server error" });
+    req.session.destroy((sessionErr) => {
+      if (sessionErr) {
+        console.error("Session destruction error:", sessionErr);
+        return res.status(500).json({
+          status: "error",
+          code: "server_error",
+          message: "An error occurred while clearing the session",
+        });
+      }
+    });
+
+    res.clearCookie("connect.sid", { path: "/" });
+
+    if (req.accepts("html")) {
+      return res.redirect("/login.html");
+    } else {
+      return res.status(200).json({ status: "success", code: "logged out" });
+    }
+  });
+});
+
+/**
+ * This is the logout route that will be used to log users out.
+ * This is a POST request.
+ */
+router.post("/logout", function (req, res) {
+  if (!req.user) {
+    return res.status(401).json({ status: "error", code: "unauthorized" });
+  }
+
+  req.logout(function (err) {
+    if (err) {
+      return res
+        .status(500)
+        .json({ status: "error", code: "server error", message: err.message });
     }
 
-    return res.status(200).json({ status: "success", code: "logged out" });
+    req.session.destroy((sessionErr) => {
+      if (sessionErr) {
+        console.error("Session destruction error:", sessionErr);
+        return res.status(500).json({
+          status: "error",
+          code: "server_error",
+          message: "An error occurred while clearing the session",
+        });
+      }
+    });
+
+    res.clearCookie("connect.sid", { path: "/" });
+
+    if (req.accepts("html")) {
+      return res.redirect("/login.html");
+    } else {
+      return res.status(200).json({ status: "success", code: "logged out" });
+    }
   });
 });
 

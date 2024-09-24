@@ -11,6 +11,7 @@ const app = express();
 const path = require("path");
 const multer = require("multer");
 const flash = require("connect-flash");
+//const bodyParser = require("body-parser");
 //const dbConnect = require("./models/db-connect");
 const { router: databaseRouter } = require("./models/database");
 const passport = require("passport");
@@ -21,8 +22,12 @@ const session = require("express-session");
 app.use(multer().none());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+//app.use(bodyParser.json());
 app.use(flash());
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, "public")));
+const authRouter = require("./auth/auth.route");
 const userRouter = require("./routes/user.route");
 const shelterRouter = require("./routes/shelter.route");
 const disasterRouter = require("./routes/disaster.route");
@@ -40,8 +45,6 @@ app.use(flash());
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-const authRouter = require("./auth/auth.route");
 
 /*
  * Routes
