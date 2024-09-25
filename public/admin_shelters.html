@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Easy Rescue</title>
+    <link rel="stylesheet" href="../styles/styles.css">
+</head>
+
+<body style="background-color: WHITE;">
+
+<!-- Nav Bar -->
+<div class="nav">
+    <div class="logo">
+        <a href="index.html"><img src="logo.png" width="100" height="auto"></a>
+    </div>
+    <div class="nav-right">
+        <div class="dropdown">
+            <button>Shelters</button>
+            <div class="dropdown-options">
+                <a href="index.html">Dashboard</a>
+                <a href="admin_resources.html">Resources</a>
+                <a href="employees.html">Manage</a>
+                <a href="login.html">Log Out</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="row">
+    <div class="left-side">
+        <h1>Shelter Information</h1>
+        <button id="fetchShelters">Fetch Shelters</button>
+        <div id="shelterList"></div>
+    </div>
+</div>
+
+<!-- The div element where the map will be displayed -->
+<div class="main" id="map"></div>
+
+<!-- Load the Google Maps API-->
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&callback=initMap">
+</script>
+
+<!-- calling script.js to initialize the map -->
+<script src="../script/script.js" defer></script>
+
+<footer class="copyright" style="color: black">
+    <p>© 2024, Easy Rescue LLC</p>
+</footer>
+</body>
+</html>
