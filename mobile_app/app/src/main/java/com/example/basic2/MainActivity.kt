@@ -15,13 +15,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -34,10 +33,23 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.*
 import com.google.android.gms.tasks.Task
+import io.ktor.client.*
+import io.ktor.client.engine.okhttp.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.cookies.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.gson.*
+import com.google.gson.JsonParser
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.gson.*
+import kotlinx.coroutines.launch
+import io.ktor.client.call.body
+import io.ktor.client.request.forms.submitForm
+const val IS_DEVELOPMENT = true
 
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -48,23 +60,33 @@ class MainActivity : ComponentActivity() {
 
         // Initialize FusedLocationProviderClient
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        val deepRed = Color(0xFFE69A94)
-        val vividOrange = Color(0xFFF6B7AA)
-        val lightPeach = Color(0xFFF7CDBE)
-        val palePink = Color(0xFFEEC6C7)
-        val duskyPurple = Color(0xFFD19EAF)
-        val darkMaroon = Color(0xFFB27E91)
+
         setContent {
             Basic2Theme {
-                // Adjust for system bars and draw border within the safe area
+                // Define your custom colors
+                val deepRed = Color(0xFFE69A94)
+                val vividOrange = Color(0xFFF6B7AA)
+                val lightPeach = Color(0xFFF7CDBE)
+                val palePink = Color(0xFFEEC6C7)
+                val duskyPurple = Color(0xFFD19EAF)
+                val darkMaroon = Color(0xFFB27E91)
+
+                // Adjust for system bars and apply the custom gradient border
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(WindowInsets.systemBars.asPaddingValues()) // Adjust for system bars
+                        .systemBarsPadding() // Adjusts for the status and navigation bars
                         .border(
-                            width = 15.dp,
+                            width = 10.dp,
                             brush = Brush.linearGradient(
-                                colors = listOf(deepRed, palePink, darkMaroon),
+                                colors = listOf(
+                                    deepRed,
+                                    vividOrange,
+                                    lightPeach,
+                                    palePink,
+                                    duskyPurple,
+                                    darkMaroon
+                                ),
                                 start = Offset.Zero,
                                 end = Offset.Infinite
                             ),
@@ -73,7 +95,7 @@ class MainActivity : ComponentActivity() {
                         .padding(10.dp) // Padding to prevent content overlap with the border
                 ) {
                     val navController = rememberNavController()
-                    AppWithPhoneNumberDialog(
+                    AppWithLoginDialog(
                         navController = navController,
                         fusedLocationClient = fusedLocationClient
                     )
@@ -82,104 +104,171 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppWithPhoneNumberDialog(
+fun AppWithLoginDialog(
     navController: NavHostController,
     fusedLocationClient: FusedLocationProviderClient
 ) {
-    var phoneNumber by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(true) }
-    var location by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     val context = LocalContext.current
 
-    // Location request function
-    fun requestLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Request permissions
-            ActivityCompat.requestPermissions(
-                (context as ComponentActivity),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                1
-            )
-        } else {
-            // Fetch location
-            fusedLocationClient.lastLocation.addOnSuccessListener { locationResult ->
-                locationResult?.let {
-                    location = Pair(it.latitude, it.longitude)
-                }
-            }
-        }
-    }
-
-    // Launch location request after dialog is dismissed
-    LaunchedEffect(showDialog) {
-        if (!showDialog) {
-            requestLocation()
-        }
-    }
-
     if (showDialog) {
-        PhoneNumberDialog(
-            onDismiss = { showDialog = false },
-            onSave = { input ->
-                phoneNumber = input
-                showDialog = false
-            }
+        LoginDialog(
+            onDismiss = { /* Handle dismiss if necessary */ },
+            onLoginSuccess = { showDialog = false }
         )
     }
 
-    // Main app navigation after the dialog
-    NavHost(navController = navController, startDestination = "reportScreen") {
-        composable("reportScreen") {
-            ReportScreen(navController = navController, location = location, fusedLocationClient = fusedLocationClient)
-        }
-        composable("OnlineInfo") {
-            OnlineInfo(navController = navController)
+    if (!showDialog) {
+        // Main app content
+        NavHost(navController = navController, startDestination = "reportScreen") {
+            composable("reportScreen") {
+                ReportScreen(
+                    navController = navController,
+                    location = null,
+                    fusedLocationClient = fusedLocationClient
+                )
+            }
+            composable("OnlineInfo") {
+                OnlineInfo(navController = navController)
+            }
         }
     }
 }
-
 @Composable
-fun PhoneNumberDialog(onDismiss: () -> Unit, onSave: (String) -> Unit) {
-    var phoneNumberInput by remember { mutableStateOf("") }
+fun LoginDialog(
+    onDismiss: () -> Unit,
+    onLoginSuccess: () -> Unit
+) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    // Coroutine scope for network operations
+    val coroutineScope = rememberCoroutineScope()
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Enter your Phone Number") },
+        title = { Text("Login") },
         text = {
             Column {
-                Text("Please enter your phone number:")
+                TextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("Username") },
+                    singleLine = true
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 TextField(
-                    value = phoneNumberInput,
-                    onValueChange = { phoneNumberInput = it },
-                    placeholder = { Text("Phone Number") }
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true
                 )
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         },
         confirmButton = {
-            Button(onClick = {
-                onSave(phoneNumberInput)
-            }) {
-                Text("Save")
+            Button(
+                onClick = {
+                    isLoading = true
+                    errorMessage = null
+                    coroutineScope.launch {
+                        val success = performLogin(username, password)
+                        isLoading = false
+                        if (success) {
+                            onLoginSuccess()
+                        } else {
+                            errorMessage = "Invalid username or password."
+                        }
+                    }
+                },
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Login")
+                }
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
+            Button(
+                onClick = onDismiss,
+                enabled = !isLoading
+            ) {
                 Text("Cancel")
             }
         }
     )
 }
+
+data class LoginResponse(
+    val status: String,
+    val code: String
+)
+
+suspend fun performLogin(username: String, password: String): Boolean {
+    if (IS_DEVELOPMENT) {
+        // Hardcoded login credentials for development
+        val hardcodedUsername = "devuser"
+        val hardcodedPassword = "devpass"
+
+        // Check if entered credentials match the hardcoded ones
+        return (username == hardcodedUsername && password == hardcodedPassword)
+    } else {
+        // Existing production login logic
+        return try {
+            val client = HttpClient(OkHttp) {
+                install(ContentNegotiation) {
+                    gson()
+                }
+                install(HttpCookies) {
+                    storage = AcceptAllCookiesStorage()
+                }
+                expectSuccess = false
+            }
+
+            val response: HttpResponse = client.submitForm(
+                url = "https://your-production-url.com/auth/login",
+                formParameters = Parameters.build {
+                    append("username", username)
+                    append("password", password)
+                }
+            )
+
+            client.close()
+
+            val responseBody = response.bodyAsText()
+            val jsonResponse = JsonParser.parseString(responseBody).asJsonObject
+            val status = jsonResponse.get("status").asString
+
+            status == "success"
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+}
+
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(
