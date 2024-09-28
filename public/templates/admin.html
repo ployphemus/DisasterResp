@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Easy Rescue</title>
+    <title>Dashboard - Easy Rescue</title>
     <link rel="stylesheet" href="../styles/styles.css">
+    <!-- Load the Google Maps API-->
+    <script async
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&callback=initMap"
+            defer>
+    </script>
 </head>
 
 <body style="background-color: WHITE;">
 
-<!-- Nav Bar -->
+Nav Bar
 <div class="nav">
     <div class="logo">
         <a href="index.html"><img src="logo.png" width="100" height="auto"></a>
@@ -27,21 +32,16 @@
     </div>
 </div>
 
-<!-- Content -->
-<div class="row">
-    <div class="left-side">
+<div class="container"> <!-- Container for map and flood stage monitor -->
+    <!-- The div element where the map will be displayed -->
+    <div class="main" id="map"></div>
 
-
+    <!-- Sidebar for flood stage monitoring -->
+    <div class="sidebar">
+        <h2 class="monitor" align="center">Stream Flooding Monitors</h2>
+        <ul id="flood-list"></ul>
     </div>
 </div>
-
-<!-- The div element where the map will be displayed -->
-<div class="main" id="map"></div>
-
-<!-- Load the Google Maps API-->
-<script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&callback=initMap">
-</script>
 
 <!-- calling script.js to initialize the map -->
 <script src="../script/script.js" defer></script>
