@@ -9,7 +9,6 @@ body {
     align-items: center;
     position: relative; /* Ensure this has a stacking context */
     z-index: 10; /* Higher than the map */
-    margin-bottom: 20px;
 }
 
 .nav-right {
@@ -18,70 +17,32 @@ body {
     margin-left: auto;
 }
 
-.logo {
-    padding-top: 10px;
-    padding-left: 20px;
-    padding-bottom: 5px;
-}
-
-.container {
+.nav-right {
+    font-family: sans-serif;
     display: flex;
-    height: 100vh; /* Full viewport height */
+    margin-left: auto;
+    padding-right: 20px; /* Add padding to the right of the nav-right container */
 }
 
-#map {
-    flex: 1;      /* Takes remaining space */
-    width: 75%;
-    height: 80vh; /* Full height of the container */
-    margin: 0;
-    padding: 0;
+.shelter-info {
+    background-color: #FFD3D2;
+    border: 1px solid transparent; /* Transparent border for a clean look */
+    border-radius: 8px; /* Soft edges */
+    font-size: 30px;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
-/* Sidebar for flood stage monitoring */
-.sidebar {
-    width: 25%; /* takes 25% of the container space */
-    padding: 10px;
-    background-color: rgba(0,0,0,0.83);
-    border-left: 1px solid #ccc;
-    height: 100%; /* Full height of the container */
-    overflow-y: auto; /* Scrollable if content exceeds height */
+.row {
+    display: flex;
+    flex-wrap: wrap;
 }
 
-.monitor {
-    color:white;
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
 }
-
-/* Styles for the flood list */
-#flood-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-#flood-list li {
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    cursor: pointer; /* Pointer cursor for clickable items */
-}
-
-/* Background colors based on severity */
-#flood-list li.green {
-    background-color: #d4edda; /* Light green */
-}
-
-#flood-list li.yellow {
-    background-color: #fff3cd; /* Light yellow */
-}
-
-#flood-list li.orange {
-    background-color: #ffe5b5; /* Light orange */
-}
-
-#flood-list li.red {
-    background-color: #f8d7da; /* Light red */
-}
-
 
 .logo {
     padding-left: 20px;
@@ -172,6 +133,36 @@ button:hover {
 
 .copyright {
     margin-left: auto;
-    padding-left: 50px;
+    padding-left: 100px;
     padding-top: 100px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+/* Set the size of the map */
+#map {
+    height: 50vh; /* 50% height */
+    width: 50%; /* 50% width */
+    z-index: 1; /* Lower than the dropdown */
+    position: relative; /* Add this to ensure z-index works */
 }
