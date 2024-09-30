@@ -105,8 +105,8 @@ async function createNewUser(req, res, next) {
     const params = [firstName, lastName, password, latitude, longitude, email];
     const user = await model.createNewUser(params);
     console.log("User created:", user);
-    if (req.accepts("html") && !req.accepts("json")) {
-      res.render("/login.html", { user: user });
+    if (req.accepts("html")) {
+      res.redirect("/auth/login");
     } else {
       res.json(user);
     }
