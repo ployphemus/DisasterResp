@@ -6,6 +6,7 @@
 /*
  * This is the middleware that is required for the application to run.
  */
+const dotenv = require("dotenv").config();
 const express = require("express");
 const app = express();
 const path = require("path");
@@ -58,6 +59,9 @@ app.use("/disasters", disasterRouter);
 app.get("/", (req, res) => {
   res.render("index", { title: "Home" });
 });
+
+const nodeEmailMidd = require("./middleware/nodemailer");
+//nodeEmailMidd.sendEmailFunc();
 
 const PORT = process.env.PORT || 8000;
 

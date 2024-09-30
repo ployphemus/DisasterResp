@@ -9,10 +9,16 @@ const router = express.Router();
 const passport = require("./auth.passport");
 
 /* This is basically a route to the login page but it doesn't work YET
+ */
 router.get("/login", function (req, res) {
   res.render("user/login", { title: "Login", message: req.flash("error")[0] });
 });
-*/
+
+router.get("/register", function (req, res) {
+  res.render("user/signup", {
+    title: "Sign Up",
+  });
+});
 
 /* THIS IS EXPERIMENTAL CODE THAT WILL BE DELETED LATER
 router.post('/login', function (req, res, next) {
@@ -41,25 +47,38 @@ router.post('/login', function (req, res, next) {
 router.post("/login", function (req, res, next) {
   passport.authenticate("local", function (err, user, info) {
     if (err) {
-      return next(err);
+      console.log("Login Error:", err);
+      return res
+        .status(500)
+        .json({ success: false, status: "error", code: "server_error" });
     }
     if (!user) {
-      req.flash("error", info.message);
       if (req.accepts("html")) {
+        req.flash("error", info.message);
         return res.redirect("/login.html");
       } else {
-        return res.json({ status: "error", code: "unauthorized" });
+        return res
+          .status(401)
+          .json({ success: false, status: "error", code: "unauthorized" });
       }
     }
     req.logIn(user, function (err) {
       if (err) {
-        return next(err);
+        console.error("Login error:", err);
+        return res
+          .status(500)
+          .json({ success: false, status: "error", code: "server_error" });
       }
 
+      console.log("Login successful");
       if (req.accepts("html")) {
         return res.redirect("/");
       } else {
-        return res.json({ status: "success", code: "authorized" });
+        return res.json({
+          success: true,
+          status: "success",
+          code: "authorized",
+        });
       }
     });
   })(req, res, next);
