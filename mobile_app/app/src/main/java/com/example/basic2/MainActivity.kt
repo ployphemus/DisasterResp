@@ -134,6 +134,12 @@ fun AppWithLoginDialog(
             composable("OnlineInfo") {
                 OnlineInfo(navController = navController)
             }
+            composable("EQinfo") {
+                EQinfo(navController = navController)
+            }
+            composable("WildfireScreen") {
+                WildfireScreen(navController = navController)
+            }
         }
     }
 }
@@ -246,7 +252,7 @@ suspend fun performLogin(username: String, password: String): Boolean {
             }
 
             val response: HttpResponse = client.submitForm(
-                url = "https://your-production-url.com/auth/login",
+                url = "http://127.0.0.1:8000/auth/login",
                 formParameters = Parameters.build {
                     append("username", username)
                     append("password", password)
@@ -427,7 +433,7 @@ fun MenuButton(navController: NavHostController) {
         onDismissRequest = { expanded = false }
     ) {
         DropdownMenuItem(
-            text = { Text("Option 1") },
+            text = { Text("Local Flood Info") },
             onClick = {
                 // Navigate to the new screen
                 navController.navigate("OnlineInfo")
@@ -435,8 +441,16 @@ fun MenuButton(navController: NavHostController) {
             }
         )
         DropdownMenuItem(
-            text = { Text("Option 2") },
+            text = { Text("Earthquake Info") },
             onClick = {
+                navController.navigate("EQinfo")
+                expanded = false
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Wildfire Info") },
+            onClick = {
+                navController.navigate("WildfireScreen")
                 expanded = false
             }
         )
