@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.ktor.client.okhttp) // For Ktor Client with OkHttp engine
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.gson)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
