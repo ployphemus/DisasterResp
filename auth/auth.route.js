@@ -55,7 +55,7 @@ router.post("/login", function (req, res, next) {
     if (!user) {
       if (req.accepts("html")) {
         req.flash("error", info.message);
-        return res.redirect("/login.html");
+        return res.redirect("/auth/login");
       } else {
         return res
           .status(401)
@@ -115,7 +115,8 @@ router.get("/logout", function (req, res) {
     res.clearCookie("connect.sid", { path: "/" });
 
     if (req.accepts("html")) {
-      return res.redirect("/login.html");
+      console.log("Redirecting to login page");
+      return res.redirect("/auth/login");
     } else {
       return res.status(200).json({ status: "success", code: "logged out" });
     }

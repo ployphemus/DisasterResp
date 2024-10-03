@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Users - Easy Rescue</title>
+    <link rel="stylesheet" href="/styles/styles.css" />
+  </head>
+
+  <body style="background-color: WHITE">
+    <!-- Nav Bar -->
+    <div class="nav">
+      <div class="logo">
+        <a href="/index.html"
+          ><img src="/logo.png" width="100" height="auto"
+        /></a>
+      </div>
+      <div class="nav-right">
+        <div class="dropdown">
+          <button>Dashboard</button>
+          <div class="dropdown-options">
+            <a href="user_shelters.html">Shelters</a>
+            <a href="user_resources.html">Resources</a>
+            <a href="/auth/logout">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Email</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(user => { %>
+        <tr>
+          <td><%= user.First_Name %></td>
+          <td><%= user.Last_Name %></td>
+          <td><%= user.Email %></td>
+          <td><%= user.userType %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <% if (loggedIn) { %>
+    <p>
+      You are logged in as User ID: <strong><%= user_id %></strong> as a
+      <strong><%= user_type %></strong>
+    </p>
+    <% } else { %>
+    <p>You are not logged in.</p>
+    <% } %>
+
+    <footer class="copyright" style="color: black">
+      <p>© 2024, Easy Rescue LLC</p>
+    </footer>
+  </body>
+</html>

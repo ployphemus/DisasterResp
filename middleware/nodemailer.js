@@ -28,7 +28,7 @@ transporter.verify(function (error, success) {
 
 let mailOptions = {
   from: clientEmailUser,
-  to: "j_moreno@uncg.edu",
+  to: "empty",
   subject: "Test Email",
   text: "Testing email",
 };

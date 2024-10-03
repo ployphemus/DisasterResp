@@ -39,10 +39,13 @@ app.use(
     secret: "your-session-secret",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24,
+    },
   })
 );
-
-app.use(flash());
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -57,7 +60,7 @@ app.use("/shelters", shelterRouter);
 app.use("/disasters", disasterRouter);
 
 app.get("/", (req, res) => {
-  res.render("index", { title: "Home" });
+  res.render("index1");
 });
 
 const nodeEmailMidd = require("./middleware/nodemailer");
