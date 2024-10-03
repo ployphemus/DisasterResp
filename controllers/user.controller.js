@@ -23,15 +23,30 @@ async function getAllUsers(req, res, next) {
   console.log("getAllUsers called");
   try {
     const users = await model.getAll();
-    console.log("Users fetched:", users);
-    /*
+    let loggedIn = req.user ? true : false;
+    let user_type = null;
+    let user_id = null;
+    if (req.user) {
+      user_type = req.user.userType;
+      user_id = req.user.id;
+    }
+    //console.log("Users fetched:", users);
+    console.log("Logged in:", loggedIn);
+    console.log("User type:", user_type);
+    console.log("User ID:", user_id);
+
     if (req.accepts("html")) {
-      //res.render("users", { users: users });
+      res.render("admin/user-management", {
+        users: users,
+        loggedIn: loggedIn,
+        user_type: user_type,
+        user_id: user_id,
+      });
     } else {
       res.json(users);
-    } 
-    */
-    res.json(users);
+    }
+
+    //res.json(users);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch users" });
     console.error(err);
@@ -50,7 +65,7 @@ async function getUserById(req, res, next) {
   try {
     const userId = req.params.id;
     const user = await model.getUserById(userId);
-    console.log("User fetched:", user);
+    console.log("User fetched from getUserByID:", user);
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch user" });
@@ -106,7 +121,12 @@ async function createNewUser(req, res, next) {
     const user = await model.createNewUser(params);
     console.log("User created:", user);
     if (req.accepts("html")) {
-      res.redirect("/auth/login");
+      const referer = req.get("referer");
+      if (referer && !referer.includes("/auth/register")) {
+        res.redirect(referer);
+      } else {
+        res.redirect("/auth/login");
+      }
     } else {
       res.json(user);
     }
@@ -218,7 +238,20 @@ async function deleteUserById(req, res, next) {
     const userId = req.params.id;
     const user = await model.deleteUserById(userId);
     console.log("User deleted:", user);
-    res.json(user);
+
+    //
+    if (req.accepts("html")) {
+      const referer = req.get("referer");
+      if (referer) {
+        res.redirect(referer);
+      } else {
+        res.redirect("/");
+      }
+    } else {
+      res.json(user);
+    }
+
+    //res.json(user);
   } catch (err) {
     res.status(500).json({ error: "Failed to delete user" });
     console.error(err);
@@ -237,7 +270,7 @@ async function getUserByEmail(req, res, next) {
   try {
     let email = req.params.email;
     const user = await model.getUserByEmail(email);
-    console.log("User fetched:", user);
+    console.log("User fetched from getUserByEmail:", user);
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch user" });

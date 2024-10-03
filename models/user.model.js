@@ -31,10 +31,12 @@ async function getAll() {
 async function getUserById(id) {
   const sql = "SELECT * FROM users WHERE id = ?";
   try {
+    //console.log("Executing query:", sql, "with ID:", id);
     const user = await db.get(sql, [id]);
+    //console.log("User fetched from getUserById:", user);
     return user;
   } catch (err) {
-    console.error("Error fetching user:", err);
+    console.error("Error fetching user by ID:", err);
     throw err;
   }
 }
