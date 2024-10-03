@@ -6,6 +6,14 @@ form {
     text-align: center;
 }
 
+.new_pw {
+    color: dodgerblue;
+}
+
+.new_pw:hover {
+    color: darkblue;
+}
+
 a {
     color: white;
 }
