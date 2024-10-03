@@ -1,3 +1,8 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: BLACK;
+}
+
 .table {
     margin-top:50px;
     margin-left:200px;
