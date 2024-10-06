@@ -9,6 +9,7 @@ body {
     align-items: center;
     position: relative; /* Ensure this has a stacking context */
     z-index: 10; /* Higher than the map */
+    margin-bottom: 10px;
 }
 
 .nav-right {
@@ -17,12 +18,12 @@ body {
     margin-left: auto;
 }
 
-.nav-right {
+/*.nav-right {
     font-family: sans-serif;
     display: flex;
     margin-left: auto;
-    padding-right: 20px; /* Add padding to the right of the nav-right container */
-}
+    padding-right: 20px; /* Add padding to the right of the nav-right container
+}*/
 
 .shelter-info {
     background-color: #FFD3D2;
@@ -45,9 +46,37 @@ body {
 }
 
 .logo {
-    padding-top: 30px;
-    padding-left: 30px;
-    padding-bottom: 10px;
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-bottom: 5px;
+}
+
+/* Navbar base color */
+.navbar ul{
+    list-style-type: none;
+    background-color: #d30000;
+    padding: 0px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+/* Navbar text color */
+.navbar a{
+    color: white;
+    text-decoration: none;
+    padding: 15px;
+    display: block;
+    text-align: right;
+}
+
+/* Navbar hover color */
+.navbar a:hover{
+    background-color: #7f0338;
+}
+
+/* Navbar text right */
+.navbar li{
+    float: right;
 }
 
 .main {
@@ -76,60 +105,6 @@ button {
 
 button:hover {
     background-color: #ddd;
-}
-
-.dropdown {
-    position: relative; /* Position for dropdown context */
-    z-index: 15; /* Higher than the map */
-}
-
-.dropdown-button {
-    background-color: #f0f0f0; /* Light background color */
-    color: #333; /* Text color */
-    border: 1px solid transparent; /* Transparent border for a clean look */
-    border-radius: 8px; /* Soft edges */
-    padding: 10px 15px; /* Padding for better spacing */
-    font-size: 16px; /* Font size */
-    cursor: pointer; /* Pointer cursor */
-    transition: background-color 0.3s, border-color 0.3s; /* Smooth transitions */
-    outline: none; /* Remove outline */
-    margin-right: 10px; /* Add right margin for space from the edge */
-}
-
-.dropdown-options {
-    position: absolute;
-    overflow: auto;
-    background-color: #fff;
-    border-radius: 8px; /* Soft edges for the rectangle */
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15); /* Softer shadow */
-    z-index: 20; /* Make sure it's above the map */
-    padding: 10px 0; /* Space around the items */
-    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; /* Smooth transition */
-    opacity: 0; /* Start as invisible */
-    visibility: hidden; /* Prevent interaction when not visible */
-}
-
-.dropdown:hover .dropdown-options {
-    opacity: 1; /* Fully visible on hover */
-    visibility: visible; /* Allow interaction */
-}
-
-.dropdown-button:focus {
-    border-color: #aaa; /* Highlight border on focus */
-    box-shadow: 0 0 5px rgba(0, 0, 255, 0.3); /* Optional shadow for focus */
-}
-
-.dropdown-options a {
-    display: block;
-    color: #000000;
-    padding: 10px 20px; /* Adjust padding for better spacing */
-    text-decoration: none;
-}
-
-.dropdown-options a:hover {
-    color: #0a0a23;
-    background-color: #ddd;
-    border-radius: 5px;
 }
 
 .copyright {

@@ -14,22 +14,24 @@
 
 <body style="background-color: WHITE;">
 
-<!-- Nav Bar -->
+<!-- Header -->
 <div class="nav">
     <div class="logo">
-        <a href="index.html"><img src="logo.png" width="100" height="auto"></a>
+        <a href="index.html"><img src="logo.png" width="75" height="auto"></a>
     </div>
     <div class="nav-right">
-        <div class="dropdown">
-            <button>Dashboard</button>
-            <div class="dropdown-options">
-                <a href="user_shelters.html">Shelters</a>
-                <a href="user_resources.html">Resources</a>
-                <a href="login.html">Log Out</a>
-            </div>
-        </div>
+        <button><a href="login.html">Log in</a></button>
     </div>
 </div>
+
+<!--Nav Bar-->
+<nav class="navbar">
+    <ul>
+        <li><a href="user_resources.html">Resources</a></li>
+        <li><a href="user_shelters.html">Shelters</a></li>
+        <li><a href="index.html">Dashboard</a></li>
+    </ul>
+</nav>
 
 <div class="container"> <!-- Container for map and flood stage monitor -->
     <!-- The div element where the map will be displayed -->
@@ -46,7 +48,7 @@
 <script src="script/script.js" defer></script>
 
 <footer class="copyright" style="color: black">
-    <p>© 2024, Easy Rescue LLC</p>
+    <p>© 2024, ShelterSafe LLC</p>
 </footer>
 </body>
 </html>
