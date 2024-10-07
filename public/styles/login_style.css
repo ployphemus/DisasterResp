@@ -2,8 +2,44 @@ div {
     text-align: center;
 }
 
+/* Navbar base color */
+.navbar ul{
+    list-style-type: none;
+    background-color: #d30000;
+    padding: 0px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+/* Navbar text color */
+.navbar a{
+    color: white;
+    text-decoration: none;
+    padding: 15px;
+    display: block;
+    text-align: right;
+}
+
+/* Navbar hover color */
+.navbar a:hover{
+    background-color: #7f0338;
+}
+
+/* Navbar text right */
+.navbar li{
+    float: right;
+}
+
 form {
     text-align: center;
+}
+
+.new_pw {
+    color: dodgerblue;
+}
+
+.new_pw:hover {
+    color: darkblue;
 }
 
 a {

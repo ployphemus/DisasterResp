@@ -7,18 +7,53 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("./auth.passport");
+const userModel = require("../models/user.model");
+const userController = require("../controllers/user.controller");
 
-/* This is basically a route to the login page but it doesn't work YET
+/**
+ * This is the login route that'll be used to render the login page.
  */
 router.get("/login", function (req, res) {
   res.render("user/login", { title: "Login", message: req.flash("error")[0] });
 });
 
+/**
+ * This is the register route that'll be used to render the register page.
+ */
 router.get("/register", function (req, res) {
   res.render("user/signup", {
     title: "Sign Up",
   });
 });
+
+/**
+ * This is the register route that'll be used to render the register page.
+ */
+router.get("/forgot-password", function (req, res) {
+  res.render("user/find_by_email", {
+    title: "Forgot Password",
+  });
+});
+
+/**
+ * This is the forgot password route that'll be used to handle the forgot password request.
+ */
+router.post("/forgot-password-email", userController.initiatePasswordReset);
+
+/**
+ * This'll be for the reset password page.
+ */
+router.get("/reset-password/:token", function (req, res) {
+  res.render("user/forgot_pw", {
+    title: "Reset Password",
+    token: req.params.token,
+  });
+});
+
+/**
+ * This'll handle the reset password request.
+ */
+router.post("/resetting-password", userController.resetPassword);
 
 /* THIS IS EXPERIMENTAL CODE THAT WILL BE DELETED LATER
 router.post('/login', function (req, res, next) {
@@ -55,7 +90,7 @@ router.post("/login", function (req, res, next) {
     if (!user) {
       if (req.accepts("html")) {
         req.flash("error", info.message);
-        return res.redirect("/login.html");
+        return res.redirect("/auth/login");
       } else {
         return res
           .status(401)
@@ -115,7 +150,8 @@ router.get("/logout", function (req, res) {
     res.clearCookie("connect.sid", { path: "/" });
 
     if (req.accepts("html")) {
-      return res.redirect("/login.html");
+      console.log("Redirecting to login page");
+      return res.redirect("/auth/login");
     } else {
       return res.status(200).json({ status: "success", code: "logged out" });
     }

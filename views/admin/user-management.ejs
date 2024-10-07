@@ -1,0 +1,115 @@
+<html lang="en">
+  <head>
+    <title>User Management - Easy Rescue</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/styles/employees_style.css" />
+  </head>
+  <body>
+    <div class="logo">
+      <a href="/"><img src="/logo.png" width="100" height="auto" /></a>
+    </div>
+    <h1 align="center"><b>User Management</b></h1>
+
+    <!-- Form for adding a new employee -->
+    <div class="container">
+      <div class="col-lg-4">
+        <h2>Add a new User</h2>
+        <form action="/users/createNewUser" name="form1" method="POST">
+          <div class="form-group hidden">
+            <input type="number" id="id" name="id" />
+          </div>
+          <div class="form-group">
+            <label for="First_Name">First Name:</label>
+            <input type="text" id="Fname" name="First_Name" required />
+          </div>
+          <div class="form-group">
+            <label for="Last_Name">Last Name:</label>
+            <input type="text" id="Lname" name="Last_Name" required />
+          </div>
+          <div class="form-group">
+            <label for="Email">Email:</label>
+            <input
+              type="email"
+              id="Email"
+              placeholder="example@email.com"
+              name="Email"
+              required
+            />
+          </div>
+          <div class="form-group" style="display: none">
+            <label for="Password">Last Name:</label>
+            <input
+              type="password"
+              id="Password"
+              name="Password"
+              value=" "
+              required
+            />
+          </div>
+
+          <button type="submit" name="insert" class="btn btn-default">
+            Add User
+          </button>
+          <button type="submit" name="update" class="btn btn-default" disabled>
+            Update
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!--Table for existing employees-->
+    <div class="container my-5">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>First</th>
+            <th>Last</th>
+            <th>Email</th>
+            <th>User Type</th>
+            <th>Cordinates</th>
+            <th>Edit</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach(user => { %>
+          <tr>
+            <td><%= user.id %></td>
+            <td><%= user.First_Name %></td>
+            <td><%= user.Last_Name %></td>
+            <td><%= user.Email %></td>
+            <td><%= user.userType %></td>
+            <td><%= user.Latitude + ', ' + user.Longitude %></td>
+            <% if (user.id == user_id) { %>
+            <td>
+              <a href="#">Edit</a>
+            </td>
+            <td>
+              <a href="#">Delete (DISABLED)</a>
+            </td>
+            <% } else { %>
+            <td>
+              <a href="#" id="edit-user">Edit</a>
+            </td>
+            <td>
+              <a href="/users/delete/<%= user.id %>">Delete</a>
+            </td>
+            <% } %>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <footer class="copyright" style="color: black">
+      <p>© 2024, Easy Rescue LLC</p>
+    </footer>
+  </body>
+</html>

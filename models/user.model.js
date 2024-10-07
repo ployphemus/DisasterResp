@@ -31,10 +31,12 @@ async function getAll() {
 async function getUserById(id) {
   const sql = "SELECT * FROM users WHERE id = ?";
   try {
+    //console.log("Executing query:", sql, "with ID:", id);
     const user = await db.get(sql, [id]);
+    //console.log("User fetched from getUserById:", user);
     return user;
   } catch (err) {
-    console.error("Error fetching user:", err);
+    console.error("Error fetching user by ID:", err);
     throw err;
   }
 }
@@ -175,6 +177,57 @@ async function getUserType(id) {
   }
 }
 
+/**
+ * This function saveResetToken() saves a reset token and expiration date to the database.
+ * @param {*} params The parameters of the function
+ * @returns {Promise<Object>} Returns a promise that resolves to the result of the function
+ */
+async function saveResetToken(params) {
+  const sql =
+    "UPDATE users SET resetToken = ?, resetTokenExpiration = ? WHERE id = ?";
+  try {
+    const result = await db.run(sql, params);
+    return result;
+  } catch (err) {
+    console.error("Error saving reset token:", err);
+    throw err;
+  }
+}
+
+/**
+ * This function getUserByResetToken() fetches a user by their reset token from the database.
+ * @param {*} token The reset token of the user to fetch
+ * @returns {Promise<Object>} Returns a promise that resolves to the user with the given reset token
+ */
+async function getUserByResetToken(token) {
+  const sql =
+    "SELECT * FROM users WHERE resetToken = ? AND resetTokenExpiration > CURRENT_TIMESTAMP";
+  try {
+    const user = await db.get(sql, [token]);
+    return user;
+  } catch (err) {
+    console.error("Error fetching user by reset token:", err);
+    throw err;
+  }
+}
+
+/**
+ * This function clearResetToken() clears the reset token from the database.
+ * @param {*} id The ID of the user to clear the reset token from
+ * @returns {Promise<Object>} Returns a promise that resolves to the result of the function
+ */
+async function clearResetToken(id) {
+  const sql =
+    "UPDATE users SET resetToken = NULL, resetTokenExpiration = NULL WHERE id = ?";
+  try {
+    const result = await db.run(sql, [id]);
+    return result;
+  } catch (err) {
+    console.error("Error clearing reset token:", err);
+    throw err;
+  }
+}
+
 module.exports = {
   getAll,
   getUserById,
@@ -186,4 +239,7 @@ module.exports = {
   deleteUserById,
   getUserByEmail,
   getUserType,
+  saveResetToken,
+  getUserByResetToken,
+  clearResetToken,
 };
