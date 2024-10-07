@@ -13,7 +13,7 @@
   </head>
   <body>
     <div class="logo">
-      <a href="index.html"><img src="logo.png" width="100" height="auto" /></a>
+      <a href="/"><img src="logo.png" width="100" height="auto" /></a>
     </div>
     <h1 align="center"><b>User Management</b></h1>
 
@@ -21,7 +21,7 @@
     <div class="container">
       <div class="col-lg-4">
         <h2>Add a new User</h2>
-        <form action="" name="form1" method="POST">
+        <form action="/users/createNewUser" name="form1" method="POST">
           <div class="form-group">
             <label for="Fname">First Name:</label>
             <input type="text" id="Fname" name="Fname" required />
@@ -45,9 +45,6 @@
           </button>
           <button type="submit" name="update" class="btn btn-default">
             Update
-          </button>
-          <button type="submit" name="delete" class="btn btn-default">
-            Delete
           </button>
         </form>
       </div>
