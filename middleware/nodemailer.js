@@ -1,12 +1,11 @@
 "use strict";
-const clientID = process.env.OAUTH_EMAIL_CLIENT_ID;
-const clientSecret = process.env.OAUTH_EMAIL_CLIENT_SECRET;
-const clientRefreshToken = process.env.OAUTH_EMAIL_REFRESH_TOKEN;
-const clientAccessToken = process.env.OAUTH_EMAIL_ACCESS_TOKEN;
 const clientAppPassword = process.env.OAUTH_EMAIL_APP_PASSWORD;
 const clientEmailUser = process.env.OAUTH_EMAIL_USER;
 const nodemailer = require("nodemailer");
 
+/**
+ * This creates a transporter object that is used to send emails.
+ */
 const transporter = nodemailer.createTransport({
   service: "gmail",
   host: "smtp.gmail.com",
@@ -18,6 +17,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+/**
+ * This verifies the transporter object.
+ */
 transporter.verify(function (error, success) {
   if (error) {
     console.log(error);
@@ -26,22 +28,11 @@ transporter.verify(function (error, success) {
   }
 });
 
-let mailOptions = {
-  from: clientEmailUser,
-  to: "empty",
-  subject: "Test Email",
-  text: "Testing email",
-};
-
-/* transporter.sendMail(mailOptions, function (error, info) {
-  if (error) {
-    console.log(error);
-  } else {
-    console.log("Email sent: " + info.response);
-  }
-}); */
-
-function sendEmailFunc() {
+/**
+ * This function sendEmailFunc() sends an email.
+ * @param {*} mailOptions The options for the email to send
+ */
+function sendEmailFunc(mailOptions) {
   transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
       console.log(error);

@@ -40,6 +40,8 @@ database.get("/createusers", (req, res) => {
         Longitude DECIMAL(9,6),
         Email VARCHAR(255) NOT NULL UNIQUE,
         userType ENUM('USER', 'ADMIN') DEFAULT 'USER',
+        resetToken VARCHAR(255),
+        resetTokenExpiration TIMESTAMP,
         PRIMARY KEY (id)
     )`;
 
