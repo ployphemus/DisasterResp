@@ -14,22 +14,31 @@
   </head>
 
   <body style="background-color: WHITE">
-    <!-- Nav Bar -->
+    <!-- Header -->
     <div class="nav">
       <div class="logo">
-        <a href="/"><img src="logo.png" width="100" height="auto" /></a>
+        <a href="/"><img src="/logo.png" width="75" height="auto" /></a>
       </div>
       <div class="nav-right">
-        <div class="dropdown">
-          <button>Dashboard</button>
-          <div class="dropdown-options">
-            <a href="user_shelters.html">Shelters</a>
-            <a href="user_resources.html">Resources</a>
-            <a href="/auth/logout">Log Out</a>
-          </div>
-        </div>
+        <% if (loggedIn) { %>
+        <button><a href="/auth/logout">Logout</a></button>
+        <% } else { %>
+        <button><a href="/auth/login">Log in</a></button>
+        <% } %>
       </div>
     </div>
+
+    <!--Nav Bar-->
+    <nav class="navbar">
+      <ul>
+        <% if (user_type === 'ADMIN') { %>
+        <li><a href="/users/all">User Management</a></li>
+        <% } %>
+        <li><a href="/user_resources.html">Resources</a></li>
+        <li><a href="/user_shelters.html">Shelters</a></li>
+        <li><a href="/">Dashboard</a></li>
+      </ul>
+    </nav>
 
     <div class="container">
       <!-- Container for map and flood stage monitor -->
@@ -47,7 +56,7 @@
     <script src="/script/script.js" defer></script>
 
     <footer class="copyright" style="color: black">
-      <p>© 2024, Easy Rescue LLC</p>
+      <p>© 2024, ShelterSafe LLC</p>
     </footer>
   </body>
 </html>
