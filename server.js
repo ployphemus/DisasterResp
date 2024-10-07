@@ -18,6 +18,7 @@ const { router: databaseRouter } = require("./models/database");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const session = require("express-session");
+
 // const upload = multer;
 
 app.use(multer().none());
@@ -32,6 +33,7 @@ const authRouter = require("./auth/auth.route");
 const userRouter = require("./routes/user.route");
 const shelterRouter = require("./routes/shelter.route");
 const disasterRouter = require("./routes/disaster.route");
+const authMiddleware = require("./auth/auth.middleware");
 
 //
 app.use(
@@ -59,8 +61,28 @@ app.use("/users", userRouter);
 app.use("/shelters", shelterRouter);
 app.use("/disasters", disasterRouter);
 
-app.get("/", (req, res) => {
-  res.render("index1");
+/* app.get("/", (req, res) => {
+   let loggedIn = req.user ? true : false;
+  let user_type = null;
+  let user_id = null;
+  if (req.user) {
+    user_type = req.user.userType;
+    user_id = req.user.id;
+  }
+
+  res.render("index1", {
+    loggedIn: loggedIn,
+    user_type: user_type,
+    user_id: user_id,
+  }); 
+}); */
+
+app.get("/", authMiddleware.extractUserInfo, (req, res) => {
+  res.render("index1", {
+    loggedIn: req.loggedIn,
+    user_type: req.user_type,
+    user_id: req.user_id,
+  });
 });
 
 const nodeEmailMidd = require("./middleware/nodemailer");

@@ -1,4 +1,4 @@
-# DisasterResponse
+﻿# DisasterResponse
 ## Instructions
 1. Clone the repo onto your machine
 
@@ -24,35 +24,50 @@
 
 > Ctrl+C
 
-8. Press it twice to complete.
+ 1. Press it twice to complete.
 ---
 ## Endpoints for the API
-### Shelter Endpoints
+<details>
+	<details>
+	<summary><h3>Shelter Endpoints</h3></summary>
+	
 1. GET http://localhost:8000/shelters/all
-> Response is a JSON
-2. GET http://localhost:8000/shelters/:id
-> Example:
-> http://localhost:8000/shelters/3
->
->>Reponse:
->> {
->> "id": 3,
->> "Name": "Greensboro",
->> "Latitude": 36.0726,
->> "Longitude": 79.7915,
->> "Maximum_Capacity": 150,
->> "Current_Capacity": 10
->> }
+	 > Response is a JSON
+2.  GET http://localhost:8000/shelters/:id
+	> Response is a JSON
+	> Example:
+	> http://localhost:8000/shelters/3
+	>
+	>>Reponse:
+	>> {
+	>> "id": 3,
+	>> "Name": "Greensboro",
+	>> "Latitude": 36.0726,
+	>> "Longitude": 79.7915,
+	>> "Maximum_Capacity": 150,
+	>> "Current_Capacity": 10
+	>> }
+	>
+	> Response is JSON
 3. POST http://localhost:8000/shelters/createShelter
-> Body: JSON
-> Example:
->
->> {
->> "Name": "Greensboro",
->> "Latitude": 36.0726,
->> "Longitude": 79.7915,
->> "Maximum_Capacity": 150,
->> "Current_Capacity": 10
->> }
->
-> Response is JSON
+	> Body: JSON
+	> Example:
+	>
+	>> {
+	>> "Name": "Greensboro",
+	>> "Latitude": 36.0726,
+	>> "Longitude": 79.7915,
+	>> "Maximum_Capacity": 150,
+	>> "Current_Capacity": 10
+	>> }
+	>
+	> Response is JSON
+   </details>
+   <details>
+	<summary><h3>User Endpoints</h3></summary>
+	1. More Later...
+	</details>
+</details>
+
+
+

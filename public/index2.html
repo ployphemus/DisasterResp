@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - Easy Rescue</title>
-    <link rel="stylesheet" href="/styles/styles.css" />
+    <link rel="stylesheet" href="styles/styles.css" />
     <!-- Load the Google Maps API-->
     <script
       async
@@ -17,25 +17,18 @@
     <!-- Header -->
     <div class="nav">
       <div class="logo">
-        <a href="/"><img src="/logo.png" width="75" height="auto" /></a>
+        <a href="/"><img src="logo.png" width="75" height="auto" /></a>
       </div>
       <div class="nav-right">
-        <% if (loggedIn) { %>
-        <button><a href="/auth/logout">Logout</a></button>
-        <% } else { %>
         <button><a href="/auth/login">Log in</a></button>
-        <% } %>
       </div>
     </div>
 
     <!--Nav Bar-->
     <nav class="navbar">
       <ul>
-        <% if (user_type === 'ADMIN') { %>
-        <li><a href="/users/all">User Management</a></li>
-        <% } %>
-        <li><a href="/user_resources.html">Resources</a></li>
-        <li><a href="/user_shelters.html">Shelters</a></li>
+        <li><a href="user_resources.html">Resources</a></li>
+        <li><a href="user_shelters.html">Shelters</a></li>
         <li><a href="/">Dashboard</a></li>
       </ul>
     </nav>
@@ -53,7 +46,7 @@
     </div>
 
     <!-- calling script.js to initialize the map -->
-    <script src="/script/script.js" defer></script>
+    <script src="script/script.js" defer></script>
 
     <footer class="copyright" style="color: black">
       <p>© 2024, ShelterSafe LLC</p>

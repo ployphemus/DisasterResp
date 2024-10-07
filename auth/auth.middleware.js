@@ -19,6 +19,21 @@ function isAdmin(req, res, next) {
   }
 }
 
+/**
+ * This function extractUserInfo() extracts the user information from the request object and adds it to the response object.
+ * @param {*} req The request object containing the user information
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+function extractUserInfo(req, res, next) {
+  //console.log("Called extractUserInfo");
+  req.loggedIn = req.user ? true : false;
+  req.user_type = req.user ? req.user.userType : null;
+  req.user_id = req.user ? req.user.id : null;
+  next();
+}
+
 module.exports = {
   isAdmin,
+  extractUserInfo,
 };
