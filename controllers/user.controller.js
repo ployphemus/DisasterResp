@@ -12,6 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const model = require("../models/user.model");
+const shelterModel = require("../models/shelter.model");
 const crypto = require("crypto");
 const nodemailer = require("../middleware/nodemailer");
 
@@ -379,6 +380,121 @@ async function getUserType(req, res, next) {
   }
 }
 
+/**
+ * This function getAdminDashboard() is used to render the admin dashboard by calling the render() function
+ * @param {*} req The request object
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function getAdminDashboard(req, res, next) {
+  console.log("getAdminDashboard called");
+  try {
+    let loggedIn = req.user ? true : false;
+    let user_type = null;
+    let user_id = null;
+    if (req.user) {
+      user_type = req.user.userType;
+      user_id = req.user.id;
+    }
+    console.log("Logged in:", loggedIn);
+    console.log("User type:", user_type);
+    console.log("User ID:", user_id);
+
+    if (req.accepts("html")) {
+      res.render("admin/admin-dash", {
+        loggedIn: loggedIn,
+        user_type: user_type,
+        user_id: user_id,
+      });
+    } else {
+      res.json("dashboard");
+    }
+
+    //res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to render admin dash" });
+    console.error(err);
+    next(err);
+  }
+}
+
+/**
+ * This function getAdminShelters() is used to render the admin shelters page and calls the getAllSheltersAndDisasterZones() function from the shelter.model.js file
+ * @param {*} req The request object
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function getAdminShelters(req, res, next) {
+  console.log("getAdminShelters called");
+  try {
+    const shelters = await shelterModel.getAllSheltersAndDisasterZones();
+    //console.log("Shelters fetched:", shelters);
+    let loggedIn = req.user ? true : false;
+    let user_type = null;
+    let user_id = null;
+    if (req.user) {
+      user_type = req.user.userType;
+      user_id = req.user.id;
+    }
+    console.log("Logged in:", loggedIn);
+    console.log("User type:", user_type);
+    console.log("User ID:", user_id);
+
+    if (req.accepts("html")) {
+      res.render("shelters/admin_shelters", {
+        shelters: shelters,
+        loggedIn: loggedIn,
+        user_type: user_type,
+        user_id: user_id,
+      });
+    } else {
+      res.json(shelters);
+    }
+
+    //res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to render admin shelters" });
+    console.error(err);
+    next(err);
+  }
+}
+
+/**
+ * This function getUserResources() is used to render the user resource page
+ * @param {*} req The request object
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+function getUserResources(req, res, next) {
+  console.log("getUserResources called");
+  try {
+    let loggedIn = req.user ? true : false;
+    let user_type = null;
+    let user_id = null;
+    if (req.user) {
+      user_type = req.user.userType;
+      user_id = req.user.id;
+    }
+    console.log("Logged in:", loggedIn);
+    console.log("User type:", user_type);
+    console.log("User ID:", user_id);
+
+    if (req.accepts("html")) {
+      res.render("user/user_resource", {
+        loggedIn: loggedIn,
+        user_type: user_type,
+        user_id: user_id,
+      });
+    } else {
+      res.json("PAGE");
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Failed to render user resource" });
+    console.error(err);
+    next(err);
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -392,4 +508,7 @@ module.exports = {
   getUserType,
   initiatePasswordReset,
   resetPassword,
+  getAdminDashboard,
+  getAdminShelters,
+  getUserResources,
 };

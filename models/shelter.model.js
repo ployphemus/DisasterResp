@@ -44,7 +44,7 @@ async function getShelterById(id) {
  */
 async function createShelter(params) {
   const sql =
-    "INSERT INTO shelters (Name, Latitude, Longitude, Maximum_Capacity, Current_Capacity) VALUES (?, ?, ?, ?, ?);";
+    "INSERT INTO shelters (Name, Latitude, Longitude, Shelter_address, Maximum_Capacity, Current_Capacity, disasterzone_id) VALUES (?, ?, ?, ?, ?, ?, ?);";
   try {
     const shelter = await db.run(sql, params);
     return shelter;
@@ -77,7 +77,7 @@ async function updateShelterCapByID(params) {
  */
 async function updateShelterByID(params) {
   const sql =
-    "UPDATE shelters SET Name = ?, Latitude = ?, Longitude = ?, Maximum_Capacity = ?, Current_Capacity = ? WHERE id = ?";
+    "UPDATE shelters SET Name = ?, Latitude = ?, Longitude = ?, Shelter_address = ?, Maximum_Capacity = ?, Current_Capacity = ? WHERE id = ?";
   try {
     const shelter = await db.run(sql, params);
     return shelter;
@@ -103,6 +103,30 @@ async function deleteShelterByID(id) {
   }
 }
 
+/**
+ * This function getAllSheltersAndDisasterZones() fetches all shelters and their associated disaster zones from the database.
+ * @returns {Promise<Array>} Returns a promise that resolves to an array of all shelters and their associated disaster zones in the database
+ */
+async function getAllSheltersAndDisasterZones() {
+  const sql = `
+    SELECT 
+      shelters.Name AS shelter_name, 
+      shelters.Maximum_Capacity,
+      shelters.Current_Capacity, 
+      shelters.Shelter_address,
+      disasterzones.Name AS disaster_name 
+    FROM shelters 
+    JOIN disasterzones ON shelters.disasterzone_id = disasterzones.id
+  `;
+  try {
+    const shelters = await db.all(sql);
+    return shelters;
+  } catch (err) {
+    console.error("Error fetching shelters:", err);
+    throw err;
+  }
+}
+
 module.exports = {
   getAll,
   getShelterById,
@@ -110,4 +134,5 @@ module.exports = {
   updateShelterCapByID,
   updateShelterByID,
   deleteShelterByID,
+  getAllSheltersAndDisasterZones,
 };

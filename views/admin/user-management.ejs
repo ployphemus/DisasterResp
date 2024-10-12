@@ -10,12 +10,13 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="/styles/employees_style.css" />
+    <script src="/script/admin.js" defer></script>
   </head>
   <body>
-    <div class="logo">
-      <a href="/"><img src="/logo.png" width="100" height="auto" /></a>
-    </div>
-    <h1 align="center"><b>User Management</b></h1>
+    <!-- Nav-bar.EJS-->
+    <%- include('../partials/nav-bar') %>
+
+    <h1 style="align-content: center"><b>User Management</b></h1>
 
     <!-- Form for adding a new employee -->
     <div class="container">
@@ -43,22 +44,15 @@
               required
             />
           </div>
-          <div class="form-group" style="display: none">
-            <label for="Password">Last Name:</label>
-            <input
-              type="password"
-              id="Password"
-              name="Password"
-              value=" "
-              required
-            />
-          </div>
 
           <button type="submit" name="insert" class="btn btn-default">
             Add User
           </button>
           <button type="submit" name="update" class="btn btn-default" disabled>
             Update
+          </button>
+          <button type="reset" name="reset" class="btn btn-default">
+            Reset
           </button>
         </form>
       </div>

@@ -1,0 +1,26 @@
+<!-- Nav Bar -->
+<div class="nav">
+  <div class="logo">
+    <a href="/"><img src="/logo.png" width="75" height="auto" /></a>
+  </div>
+  <div class="nav-right">
+    <% if (loggedIn) { %>
+    <button><a href="/auth/logout">Logout</a></button>
+    <% } else { %>
+    <button><a href="/auth/login">Log in</a></button>
+    <% } %>
+  </div>
+</div>
+
+<!--Nav Bar-->
+<nav class="navbar">
+  <ul>
+    <% if (user_type === 'ADMIN') { %>
+    <li><a href="/users/all">User Management</a></li>
+    <li><a href="/users/admin/shelters">Admin Shelters</a></li>
+    <% } %>
+    <li><a href="/users/resources">Resources</a></li>
+    <li><a href="/shelters/allSheltersAndDisasterZones">Shelters</a></li>
+    <li><a href="/">Dashboard</a></li>
+  </ul>
+</nav>
