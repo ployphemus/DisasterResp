@@ -169,9 +169,12 @@ database.get("/createshelters", (req, res) => {
         Name VARCHAR(255),
         Latitude decimal(9,6),
         Longitude decimal(9,6),
+        Shelter_address VARCHAR(255),
         Maximum_Capacity int,
         Current_Capacity int,
-        PRIMARY KEY (id)
+        disasterzone_id int,
+        PRIMARY KEY (id),
+        FOREIGN KEY (disasterzone_id) REFERENCES disasterzones(id) ON DELETE CASCADE
     )`;
   db.query(createTableSql, (err, result) => {
     if (err) throw err;
@@ -202,45 +205,6 @@ database.get("/updateshelter/:id", (req, res) => {
     res.send("Shelter capacity updated");
   });
 });
-
-/*
- * Experimental code for testing database queries
- */
-function all(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.query(sql, params, (err, results) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      }
-      resolve(results);
-    });
-  });
-}
-
-function get(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.query(sql, params, (err, results) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      }
-      resolve(results[0]);
-    });
-  });
-}
-
-function run(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.query(sql, params, (err, results) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      }
-      resolve(results);
-    });
-  });
-}
 
 // Hurricane table
 database.get("/createhurricanes", (req, res) => {
@@ -493,6 +457,84 @@ database.delete("/removelandslide/:id", (req, res) => {
     res.send(`Landslide entry with ID ${landslideID} removed`);
   });
 });
+
+/**
+ * Database for zones/areas
+ */
+database.get("/createzones", (req, res) => {
+  let createTableSql = `CREATE TABLE IF NOT EXISTS disasterzones (
+        id INT AUTO_INCREMENT,
+        Name VARCHAR(255),
+        Latitude decimal(9,6),
+        Longitude decimal(9,6),
+        Radius decimal(9,6),
+        HexColor VARCHAR(255),
+        PRIMARY KEY (id)
+    )`;
+  db.query(createTableSql, (err, result) => {
+    if (err) throw err;
+    console.log(result);
+    res.send("Zones table created");
+  });
+});
+
+/**
+ * This part of the code allows for the models to simply call the database functions to execute queries.
+ */
+
+/**
+ * This function all() is used to execute a query that returns multiple rows.
+ * @param {*} sql The SQL query to execute
+ * @param {*} params The parameters to pass to the query
+ * @returns A promise that resolves to the results of the query
+ */
+function all(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.query(sql, params, (err, results) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return reject(err);
+      }
+      resolve(results);
+    });
+  });
+}
+
+/**
+ * This function get() is used to execute a query that returns a single row.
+ * @param {*} sql The SQL query to execute
+ * @param {*} params The parameters to pass to the query
+ * @returns A promise that resolves to the first row of the query results
+ */
+function get(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.query(sql, params, (err, results) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return reject(err);
+      }
+      resolve(results[0]);
+    });
+  });
+}
+
+/**
+ * This function run() is used to execute a query that does not return any rows.
+ * @param {*} sql The SQL query to execute
+ * @param {*} params The parameters to pass to the query
+ * @returns A promise that resolves to the results of the query
+ */
+function run(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.query(sql, params, (err, results) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return reject(err);
+      }
+      resolve(results);
+    });
+  });
+}
 
 module.exports = {
   router: database,

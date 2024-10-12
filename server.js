@@ -8,6 +8,7 @@
  */
 const dotenv = require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const path = require("path");
 const multer = require("multer");
@@ -21,6 +22,7 @@ const session = require("express-session");
 
 // const upload = multer;
 
+app.use(cors());
 app.use(multer().none());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -33,6 +35,7 @@ const authRouter = require("./auth/auth.route");
 const userRouter = require("./routes/user.route");
 const shelterRouter = require("./routes/shelter.route");
 const disasterRouter = require("./routes/disaster.route");
+const disasterZoneRouter = require("./routes/disasterzone.route");
 const authMiddleware = require("./auth/auth.middleware");
 
 //
@@ -60,6 +63,7 @@ app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/shelters", shelterRouter);
 app.use("/disasters", disasterRouter);
+app.use("/disasterzone", disasterZoneRouter);
 
 /* app.get("/", (req, res) => {
    let loggedIn = req.user ? true : false;
@@ -77,12 +81,27 @@ app.use("/disasters", disasterRouter);
   }); 
 }); */
 
-app.get("/", authMiddleware.extractUserInfo, (req, res) => {
-  res.render("index1", {
-    loggedIn: req.loggedIn,
-    user_type: req.user_type,
-    user_id: req.user_id,
-  });
+app.get("/", (req, res) => {
+  let loggedIn = req.user ? true : false;
+  let user_type = null;
+  let user_id = null;
+  if (req.user) {
+    user_type = req.user.userType;
+    user_id = req.user.id;
+  }
+  console.log("Logged in:", loggedIn);
+  console.log("User type:", user_type);
+  console.log("User ID:", user_id);
+
+  if (user_type == "ADMIN") {
+    res.redirect("/users/admin/dashboard");
+  } else {
+    res.render("index", {
+      loggedIn: req.loggedIn,
+      user_type: req.user_type,
+      user_id: req.user_id,
+    });
+  }
 });
 
 const nodeEmailMidd = require("./middleware/nodemailer");

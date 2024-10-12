@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Easy Rescue</title>
+    <link rel="stylesheet" href="/styles/styles.css" />
+    <!-- calling script.js to initialize the map -->
+    <script src="/script/script.js" defer></script>
+
+    <!-- Load the Google Maps API-->
+    <script
+      async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&loading=async&callback=initMap"
+      defer
+    ></script>
+  </head>
+
+  <body style="background-color: WHITE">
+    <!-- Nav-bar.EJS-->
+    <%- include('./partials/nav-bar') %>
+
+    <div class="container">
+      <!-- Container for map and flood stage monitor -->
+      <!-- The div element where the map will be displayed -->
+      <div class="main" id="map"></div>
+
+      <!-- Sidebar for flood stage monitoring -->
+      <div class="sidebar">
+        <h2 class="monitor" align="center">Stream Flooding Monitors</h2>
+        <ul id="flood-list"></ul>
+      </div>
+    </div>
+
+    <footer class="copyright" style="color: black">
+      <p>© 2024, ShelterSafe LLC</p>
+    </footer>
+  </body>
+</html>

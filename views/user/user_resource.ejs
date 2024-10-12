@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Easy Rescue</title>
+    <link rel="stylesheet" href="/styles/styles.css" />
+  </head>
+
+  <body style="background-color: WHITE">
+    <!-- Nav-bar.EJS-->
+    <%- include('../partials/nav-bar') %>
+
+    <!-- Content -->
+    <div class="row">
+      <div class="left-side">
+        <h1>Shelter Information</h1>
+        <button id="fetchShelters">Fetch Shelters</button>
+        <div id="shelterList"></div>
+      </div>
+    </div>
+
+    <footer class="copyright" style="color: black">
+      <p>© 2024, ShelterSafe LLC</p>
+    </footer>
+  </body>
+</html>
