@@ -1,6 +1,7 @@
 package com.example.basic2
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.location.Location
@@ -20,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavHostController
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -29,6 +31,11 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,6 +141,7 @@ fun WildfireScreen(navController: NavHostController) {
         }
     }
 
+
     // UI Code remains the same as before
     Scaffold(
         topBar = {
@@ -179,6 +187,40 @@ fun WildfireScreen(navController: NavHostController) {
                 }
             }
         }
+    }
+}
+
+fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val R = 3958.8 // Radius of Earth in miles
+    val dLat = Math.toRadians(lat2 - lat1)
+    val dLon = Math.toRadians(lon2 - lon1)
+    val a =
+        sin(dLat / 2).pow(2.0) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(
+            2.0
+        )
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
+}
+
+@SuppressLint("MissingPermission")
+fun getUserLocation(
+    fusedLocationClient: FusedLocationProviderClient,
+    onLocationReceived: (Location) -> Unit
+) {
+    try {
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    onLocationReceived(location)
+                } else {
+                    Log.e("WildfireScreen", "Location is null")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("WildfireScreen", "Failed to get location", exception)
+            }
+    } catch (e: SecurityException) {
+        Log.e("WildfireScreen", "Location permission not granted", e)
     }
 }
 
@@ -254,6 +296,7 @@ fun WildfireItem(item: WildfireDataItem) {
         }
     }
 }
+
 fun Double.format(digits: Int) = "%.${digits}f".format(this)
 
 
