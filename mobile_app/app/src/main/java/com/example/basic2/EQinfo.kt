@@ -1,9 +1,7 @@
 package com.example.basic2
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,68 +11,36 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.navigation.NavHostController
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EQinfo(navController: NavHostController) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    var earthquakeData by remember { mutableStateOf<List<Feature>>(emptyList()) }
+    var earthquakeData by remember { mutableStateOf<List<EarthquakeFeature>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var userLocation by remember { mutableStateOf<Location?>(null) }
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    val locationPermissionGranted = remember { mutableStateOf(false) }
 
-    // Request location permission if not granted
+    // Fetch earthquake data
     LaunchedEffect(Unit) {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Request permissions
-            // You'll need to handle permission requests here
-            // For simplicity, we assume permission is granted
-            locationPermissionGranted.value = true
-        } else {
-            locationPermissionGranted.value = true
-        }
-
-        if (locationPermissionGranted.value) {
-            getUserLocation(fusedLocationClient) { location ->
-                userLocation = location
-            }
-        }
-
-        // Fetch earthquake data
         coroutineScope.launch {
-            val response = getEarthquakes()
+            val response = getEarthquakeData()
             response?.let {
-                earthquakeData = it.features.filter { feature ->
-                    // Filter earthquakes over magnitude 3
-                    (feature.properties.mag ?: 0.0) >= 3.0
-                }
+                earthquakeData = it.features
             }
             isLoading = false
         }
     }
 
-    // UI
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recent Earthquakes") },
+                title = { Text("Recent Earthquakes in the US") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Go Back")
@@ -83,7 +49,7 @@ fun EQinfo(navController: NavHostController) {
             )
         }
     ) { paddingValues ->
-        if (isLoading || userLocation == null) {
+        if (isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -93,74 +59,90 @@ fun EQinfo(navController: NavHostController) {
                 CircularProgressIndicator()
             }
         } else {
-            val earthquakesWithin50Miles = earthquakeData.filter { feature ->
-                val coords = feature.geometry.coordinates
-                val distance = haversine(
-                    userLocation!!.latitude,
-                    userLocation!!.longitude,
-                    coords[1],
-                    coords[0]
-                )
-                distance <= 50
-            }
-
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                items(earthquakeData) { item ->
-                    EarthquakeItem(
-                        feature = item,
-                        userLocation = userLocation!!,
-                        within50Miles = item in earthquakesWithin50Miles
-                    )
-                }
+                // Map
+                EarthquakeMap(earthquakeData = earthquakeData)
+                // Earthquake List
+                EarthquakeList(earthquakeData = earthquakeData)
             }
         }
-    }
-}
-
-@SuppressLint("MissingPermission")
-fun getUserLocation(
-    fusedLocationClient: FusedLocationProviderClient,
-    onLocationReceived: (Location) -> Unit
-) {
-    try {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            location?.let {
-                onLocationReceived(it)
-            }
-        }
-    } catch (e: SecurityException) {
-        e.printStackTrace()
     }
 }
 
 @Composable
-fun EarthquakeItem(feature: Feature, userLocation: Location, within50Miles: Boolean) {
-    val coords = feature.geometry.coordinates
-    val distance = haversine(
-        userLocation.latitude,
-        userLocation.longitude,
-        coords[1],
-        coords[0]
-    )
+fun EarthquakeMap(earthquakeData: List<EarthquakeFeature>) {
+    // Center the map on the US
+    val usCenter = LatLng(37.0902, -95.7129) // Approximate center of the continental US
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(usCenter, 4f)
+    }
 
-    val color = if (within50Miles) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceVariant
+    GoogleMap(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        cameraPositionState = cameraPositionState
+    ) {
+        // Earthquake markers
+        earthquakeData.forEach { feature ->
+            val coords = feature.geometry.coordinates
+            val longitude = coords[0]
+            val latitude = coords[1]
+            val magnitude = feature.properties.magnitude ?: 0.0
+
+            val markerColor = when {
+                magnitude >= 5.0 -> BitmapDescriptorFactory.HUE_RED
+                magnitude >= 4.0 -> BitmapDescriptorFactory.HUE_ORANGE
+                else -> BitmapDescriptorFactory.HUE_YELLOW
+            }
+
+            Marker(
+                state = MarkerState(position = LatLng(latitude, longitude)),
+                title = "M ${magnitude}",
+                snippet = feature.properties.place,
+                icon = BitmapDescriptorFactory.defaultMarker(markerColor)
+            )
+        }
+    }
+}
+
+@Composable
+fun EarthquakeList(earthquakeData: List<EarthquakeFeature>) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        items(earthquakeData) { feature ->
+            EarthquakeItem(feature = feature)
+        }
+    }
+}
+
+@Composable
+fun EarthquakeItem(feature: EarthquakeFeature) {
+    val magnitude = feature.properties.magnitude ?: 0.0
+    val place = feature.properties.place
+    val time = feature.properties.time
 
     Surface(
-        color = color,
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp),
         tonalElevation = 2.dp
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            Text(text = feature.properties.title, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Magnitude: ${feature.properties.mag}")
-            Text(text = "Distance: ${"%.2f".format(distance)} miles")
-            Text(text = "Time: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Date(feature.properties.time))}")
+            Text(text = "M ${magnitude} - ${place}", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Time: ${formatDateTime(time)}")
         }
     }
+}
+
+fun formatDateTime(timestamp: Long): String {
+    val date = java.util.Date(timestamp)
+    val format = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+    return format.format(date)
 }

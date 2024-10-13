@@ -35,6 +35,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.google.android.gms.tasks.Task
+import com.google.firebase.dataconnect.LogLevel
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -48,7 +49,10 @@ import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import kotlinx.coroutines.launch
 import io.ktor.client.call.body
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.forms.submitForm
+import java.util.logging.Logger
+
 const val IS_DEVELOPMENT = true
 
 class MainActivity : ComponentActivity() {
@@ -64,12 +68,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             Basic2Theme {
                 // Define your custom colors
-                val deepRed = Color(0xFFE69A94)
-                val vividOrange = Color(0xFFF6B7AA)
+                val deepRed = Color(0xFFEE5C51)
+                val vividOrange = Color(0xFFF3A594)
                 val lightPeach = Color(0xFFF7CDBE)
                 val palePink = Color(0xFFEEC6C7)
                 val duskyPurple = Color(0xFFD19EAF)
-                val darkMaroon = Color(0xFFB27E91)
+                val darkMaroon = Color(0xFFAF637F)
 
                 // Adjust for system bars and apply the custom gradient border
                 Box(
@@ -224,23 +228,14 @@ fun LoginDialog(
         }
     )
 }
-
+//http://127.0.0.1:8000/auth/login
 data class LoginResponse(
     val status: String,
     val code: String
 )
 
 suspend fun performLogin(username: String, password: String): Boolean {
-    if (IS_DEVELOPMENT) {
-        // Hardcoded login credentials for development
-        val hardcodedUsername = "devuser"
-        val hardcodedPassword = "devpass"
-
-        // Check if entered credentials match the hardcoded ones
-        return (username == hardcodedUsername && password == hardcodedPassword)
-    } else {
-        // Existing production login logic
-        return try {
+    try {
             val client = HttpClient(OkHttp) {
                 install(ContentNegotiation) {
                     gson()
@@ -248,30 +243,42 @@ suspend fun performLogin(username: String, password: String): Boolean {
                 install(HttpCookies) {
                     storage = AcceptAllCookiesStorage()
                 }
+
                 expectSuccess = false
+                defaultRequest {
+                    headers.append(HttpHeaders.Accept, "application/json")
+                }
             }
 
+            val serverIp = "192.168.56.1" // Replace with your server's IP
             val response: HttpResponse = client.submitForm(
-                url = "http://127.0.0.1:8000/auth/login",
+                url = "http://$serverIp:8000/auth/login",
                 formParameters = Parameters.build {
-                    append("username", username)
-                    append("password", password)
-                }
-            )
+                    append("Email", username)
+                    append("Password", password)
+                },
+                encodeInQuery = false
+            ) {
+                /**headers {
+                    append(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
+                }**/
+            }
+
+            val responseBody = response.bodyAsText()
+            println("Response status: ${response.status}")
+            println("Response body: $responseBody")
 
             client.close()
 
-            val responseBody = response.bodyAsText()
             val jsonResponse = JsonParser.parseString(responseBody).asJsonObject
-            val status = jsonResponse.get("status").asString
+            val success = jsonResponse.get("success").asBoolean
 
-            status == "success"
+            return success
         } catch (e: Exception) {
             e.printStackTrace()
-            false
+            return false
         }
     }
-}
 
 
 

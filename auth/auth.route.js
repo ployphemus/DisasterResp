@@ -80,6 +80,7 @@ router.post('/login', function (req, res, next) {
  * This is a POST request.
  */
 router.post("/login", function (req, res, next) {
+  console.log("Login request received from:", req.ip);
   passport.authenticate("local", function (err, user, info) {
     if (err) {
       console.log("Login Error:", err);
