@@ -11,6 +11,17 @@ const userController = require("../controllers/user.controller");
 const authMiddleware = require("../auth/auth.middleware");
 
 router.get("/all", authMiddleware.isAdmin, userController.getAllUsers);
+router.get(
+  "/admin/dashboard",
+  authMiddleware.isAdmin,
+  userController.getAdminDashboard
+);
+router.get(
+  "/admin/shelters",
+  authMiddleware.isAdmin,
+  userController.getAdminShelters
+);
+router.get("/resources", userController.getUserResources);
 router.get("/:id", userController.getUserById);
 router.post("/create", userController.createUser);
 router.post("/createNewUser", userController.createNewUser);

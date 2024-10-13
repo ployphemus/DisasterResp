@@ -64,10 +64,24 @@ async function createShelter(req, res, next) {
     let name = req.body.Name;
     let latitude = req.body.Latitude;
     let longitude = req.body.Longitude;
+    let Shelter_address = req.body.Shelter_address;
     let maxCapacity = req.body.Maximum_Capacity;
     let currentCapacity = req.body.Current_Capacity;
+    let disasterzone_id = req.body.disasterzone_id;
 
-    const params = [name, latitude, longitude, maxCapacity, currentCapacity];
+    if (maxCapacity === undefined || maxCapacity === null) {
+      maxCapacity = 250;
+    }
+
+    const params = [
+      name,
+      latitude,
+      longitude,
+      Shelter_address,
+      maxCapacity,
+      currentCapacity,
+      disasterzone_id,
+    ];
     const shelter = await model.createShelter(params);
     console.log("Shelter created:", shelter);
     res.json(shelter);
@@ -112,6 +126,7 @@ async function updateShelterByID(req, res, next) {
     let name = req.body.Name;
     let latitude = req.body.Latitude;
     let longitude = req.body.Longitude;
+    let Shelter_address = req.body.Shelter_address;
     let maxCapacity = req.body.Maximum_Capacity;
     let currentCapacity = req.body.Current_Capacity;
     let shelterId = req.params.id;
@@ -119,6 +134,7 @@ async function updateShelterByID(req, res, next) {
       name,
       latitude,
       longitude,
+      Shelter_address,
       maxCapacity,
       currentCapacity,
       shelterId,
@@ -153,6 +169,46 @@ async function deleteShelterByID(req, res, next) {
   }
 }
 
+/**
+ * This function getAllSheltersAndDisasterZones() is used to get all the shelters and disaster zones from the database by calling the getAllSheltersAndDisasterZones() function from the shelter.model.js file.
+ * @param {*} req The request object
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function getAllSheltersAndDisasterZones(req, res, next) {
+  console.log("getAllSheltersAndDisasterZones called");
+  try {
+    const shelters = await model.getAllSheltersAndDisasterZones();
+    console.log("Shelters fetched:", shelters);
+    let loggedIn = req.user ? true : false;
+    let user_type = null;
+    let user_id = null;
+    if (req.user) {
+      user_type = req.user.userType;
+      user_id = req.user.id;
+    }
+
+    console.log("Logged in:", loggedIn);
+    console.log("User type:", user_type);
+    console.log("User ID:", user_id);
+
+    if (req.accepts("html")) {
+      res.render("shelters/user_shelters", {
+        shelters: shelters,
+        loggedIn: loggedIn,
+        user_type: user_type,
+        user_id: user_id,
+      });
+    } else {
+      res.json(shelters);
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch Shelters" });
+    console.error(err);
+    next(err);
+  }
+}
+
 module.exports = {
   getAllShelters,
   getShelterById,
@@ -160,4 +216,5 @@ module.exports = {
   updateShelterCapByID,
   updateShelterByID,
   deleteShelterByID,
+  getAllSheltersAndDisasterZones,
 };

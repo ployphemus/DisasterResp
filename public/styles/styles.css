@@ -53,13 +53,15 @@ body {
 }
 
 .container {
+    margin: auto;
     display: flex;
-    height: 100vh; /* Full viewport height */
+    width: 75vw;
+    height: 525px; /* Full viewport height */
 }
 
 #map {
     flex: 1;      /* Takes remaining space */
-    width: 75%;
+    width: 50%;
     height: 80vh; /* Full height of the container */
     margin: 0;
     padding: 0;
@@ -110,7 +112,6 @@ body {
     background-color: #f8d7da; /* Light red */
 }
 
-
 .logo {
     padding-left: 20px;
     padding-bottom: 5px;
@@ -143,6 +144,15 @@ button {
 button:hover {
     background-color: #ddd;
 }
+
+#about{
+    width: 50%;
+}
+
+#app{
+    width: 50%;
+}
+
 /*
 .dropdown {
     position: relative; /* Position for dropdown context
@@ -198,6 +208,7 @@ button:hover {
     border-radius: 5px;
 }
 */
+
 .copyright {
     margin-left: auto;
     padding-left: 50px;
