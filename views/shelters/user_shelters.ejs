@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Easy Rescue</title>
+    <title>Shelters - ShelterSafe</title>
     <link rel="stylesheet" href="/styles/shelters_style.css" />
     <link
       rel="stylesheet"
@@ -25,16 +25,16 @@
     </div>
 
     <!-- The div element where the map will be displayed -->
-    <div id="map" style="height: 700px; width: 100%"></div>
+    <div id="map" style="height: 700px; width: 50%"></div>
 
     <!-- Table to display nearby schools -->
     <h2>Nearby Facility Details</h2>
-    <table id="schools-table">
+    <table id="schools-table" style="height: 700px; width: 50%">
       <thead>
         <tr>
           <th>School Name</th>
           <th>Address</th>
-          <th>Action</th>
+          <th >Action</th>
         </tr>
       </thead>
       <tbody>
@@ -59,7 +59,7 @@
           <td><%= shelter.shelter_name %></td>
           <td><%= shelter.Shelter_address %></td>
           <td><%= shelter.Current_Capacity %></td>
-          <td>
+          <td class="highlight">
             <a
               href="https://www.google.com/maps/dir/?api=1&destination=<%= encodeURIComponent(shelter.Shelter_address) %>"
               target="_blank"

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Easy Rescue</title>
+    <title>Shelters (Admin) - Easy Rescue</title>
     <link rel="stylesheet" href="/styles/shelters_style.css" />
     <link
       rel="stylesheet"
@@ -52,7 +52,7 @@
           <td><%= shelter.Shelter_address %></td>
           <td><%= shelter.Maximum_Capacity %></td>
           <td><%= shelter.Current_Capacity %></td>
-          <td>
+          <td class="highlight">
             <a
               href="https://www.google.com/maps/dir/?api=1&destination=<%= encodeURIComponent(shelter.Shelter_address) %>"
               target="_blank"
