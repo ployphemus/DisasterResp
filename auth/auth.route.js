@@ -211,4 +211,13 @@ router.get("/status", function (req, res) {
   }
 });
 
+
+/**
+ * This route defines the path to the account settings page.
+ * Users will be able to modify their emails and passwords from here.
+ */
+router.get("/user_account", function (req, res){
+  res.render("user/user_account", { title: "User Account", message: req.flash("error")[0] });
+});
+
 module.exports = router;
