@@ -9,12 +9,11 @@
 const dotenv = require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const app = express();
+const http = require("http");
+const socketIo = require("socket.io");
 const path = require("path");
 const multer = require("multer");
 const flash = require("connect-flash");
-//const bodyParser = require("body-parser");
-//const dbConnect = require("./models/db-connect");
 const { router: databaseRouter } = require("./models/database");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
@@ -22,12 +21,13 @@ const session = require("express-session");
 
 // const upload = multer;
 
+const app = express();
 app.use(cors());
 app.use(multer().none());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-//app.use(bodyParser.json());
 app.use(flash());
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
@@ -36,6 +36,7 @@ const userRouter = require("./routes/user.route");
 const shelterRouter = require("./routes/shelter.route");
 const disasterRouter = require("./routes/disaster.route");
 const disasterZoneRouter = require("./routes/disasterzone.route");
+const notificationsRouter = require("./routes/notifications.route");
 const authMiddleware = require("./auth/auth.middleware");
 
 //
@@ -64,22 +65,7 @@ app.use("/users", userRouter);
 app.use("/shelters", shelterRouter);
 app.use("/disasters", disasterRouter);
 app.use("/disasterzone", disasterZoneRouter);
-
-/* app.get("/", (req, res) => {
-   let loggedIn = req.user ? true : false;
-  let user_type = null;
-  let user_id = null;
-  if (req.user) {
-    user_type = req.user.userType;
-    user_id = req.user.id;
-  }
-
-  res.render("index1", {
-    loggedIn: loggedIn,
-    user_type: user_type,
-    user_id: user_id,
-  }); 
-}); */
+app.use("/notifications", notificationsRouter);
 
 app.get("/", (req, res) => {
   let loggedIn = req.user ? true : false;
