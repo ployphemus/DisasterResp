@@ -479,6 +479,39 @@ database.get("/createzones", (req, res) => {
 });
 
 /**
+ * Database for notifications that contains the notification message and the admin_id that sent the notification, and the user_ids that'll receive the notification, and the disasterzone_id that the notification is related to.
+ */
+database.get("/createnotifications", (req, res) => {
+  let createNotificationsTableSql = `CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT,
+        Message TEXT,
+        admin_id INT,
+        disasterzone_id INT,
+        PRIMARY KEY (id),
+        FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (disasterzone_id) REFERENCES disasterzones(id) ON DELETE CASCADE
+    )`;
+
+  let createNotificationUsersTableSql = `CREATE TABLE IF NOT EXISTS notification_users (
+        notification_id INT,
+        user_id INT,
+        PRIMARY KEY (notification_id, user_id),
+        FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`;
+
+  db.query(createNotificationsTableSql, (err, result) => {
+    if (err) throw err;
+    console.log(result);
+    db.query(createNotificationUsersTableSql, (err, result) => {
+      if (err) throw err;
+      console.log(result);
+      res.send("Notifications and Notification_Users tables created");
+    });
+  });
+});
+
+/**
  * This part of the code allows for the models to simply call the database functions to execute queries.
  */
 
