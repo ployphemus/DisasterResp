@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 12, 2024 at 08:20 PM
+-- Generation Time: Oct 15, 2024 at 06:05 AM
 -- Server version: 10.11.7-MariaDB
 -- PHP Version: 8.2.4
 
@@ -124,6 +124,48 @@ CREATE TABLE `landslides` (
   `Longitude` decimal(9,6) DEFAULT NULL,
   `Date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+DROP TABLE IF EXISTS `notifications`;
+CREATE TABLE `notifications` (
+  `id` int(11) NOT NULL,
+  `Message` text DEFAULT NULL,
+  `admin_id` int(11) DEFAULT NULL,
+  `disasterzone_id` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `Message`, `admin_id`, `disasterzone_id`) VALUES
+(1, 'Test Message', 3, 18);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notification_users`
+--
+
+DROP TABLE IF EXISTS `notification_users`;
+CREATE TABLE `notification_users` (
+  `notification_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notification_users`
+--
+
+INSERT INTO `notification_users` (`notification_id`, `user_id`) VALUES
+(1, 2),
+(1, 3),
+(1, 4);
 
 -- --------------------------------------------------------
 
@@ -308,6 +350,21 @@ ALTER TABLE `landslides`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `admin_id` (`admin_id`),
+  ADD KEY `disasterzone_id` (`disasterzone_id`);
+
+--
+-- Indexes for table `notification_users`
+--
+ALTER TABLE `notification_users`
+  ADD PRIMARY KEY (`notification_id`,`user_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `shelters`
 --
 ALTER TABLE `shelters`
@@ -368,6 +425,12 @@ ALTER TABLE `landslides`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `shelters`
 --
 ALTER TABLE `shelters`
@@ -388,6 +451,20 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`disasterzone_id`) REFERENCES `disasterzones` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `notification_users`
+--
+ALTER TABLE `notification_users`
+  ADD CONSTRAINT `notification_users_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `notification_users_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `shelters`

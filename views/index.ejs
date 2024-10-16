@@ -9,6 +9,7 @@
     <script src="/script/script.js" defer></script>
 
     <!-- Load the Google Maps API-->
+    
     <script
       async
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&loading=async&callback=initMap"
@@ -19,7 +20,7 @@
   <body style="background-color: WHITE">
     <!-- Nav-bar.EJS-->
     <%- include('./partials/nav-bar') %>
-
+    
     <div class="container">
       <!-- Container for map and flood stage monitor -->
       <!-- The div element where the map will be displayed -->
@@ -30,6 +31,24 @@
         <h2 class="monitor" align="center">Stream Flooding Monitors</h2>
         <ul id="flood-list"></ul>
       </div>
+    </div>
+
+    <!-- Container for text -->
+    <div class="main" id="about">
+      <main>
+          <h1>Keep Safe with ShelterSafe</h1>
+          <p>Welcome to ShelterSafe, your go-to resource for finding safe havens during natural disasters. Our website provides real-time updates on emergencies and a comprehensive directory of nearby shelters. With user-friendly navigation, you can quickly locate the nearest safe spaces and access vital information on disaster preparedness. Stay informed, stay safe, and let ShelterSafe guide you through challenging times.</p>
+      </main>
+    </div>
+
+    <div class="main" id="app">
+        <main>
+            <h1>Take ShelterSafe on the go</h1>
+            <p>Get the free mobile app here to find shelters on the go.</p>
+        </main>
+        <div class="mobile_download">
+          <a href="/"><img src="./mobile_coming_soon.png" width="75" height="auto" /></a>
+        </div>
     </div>
 
     <footer class="copyright" style="color: black">
