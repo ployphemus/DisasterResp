@@ -11,6 +11,40 @@ const userModel = require("../models/user.model");
 const userController = require("../controllers/user.controller");
 
 /**
+ * This route defines the path to the account settings page.
+ * Users will be able to modify their emails and passwords from here.
+ */
+router.get("/user_account", function (req, res) {
+  const loggedIn = req.user ? true:false;
+  let user_type = null;
+  let user_id = null;
+  let user_email = null;
+  if(req.user){
+    user_type = req.user.userType;
+    user_id = req.user.id;
+    user_email = req.user.em;
+  }
+  console.log("Logged in:", loggedIn);
+  console.log("User type:", user_type);
+  console.log("User ID:", user_id);
+  
+  // if loggedIn = true, render user account page else go to login page
+  if(loggedIn){
+    res.render("user/user_account", {
+      loggedIn: loggedIn,
+      user_type: user_type,
+      user_id: user_id,
+      user_email: user_email,
+      title: "User Account",
+      message: req.flash("error")[0],
+    });
+  }
+  else{
+    res.render("user/login", { title: "Login", message: req.flash("error")[0] });
+  }
+});
+
+/**
  * This is the login route that'll be used to render the login page.
  */
 router.get("/login", function (req, res) {
@@ -209,15 +243,6 @@ router.get("/status", function (req, res) {
   } else {
     res.json({ status: "User is not logged in" });
   }
-});
-
-
-/**
- * This route defines the path to the account settings page.
- * Users will be able to modify their emails and passwords from here.
- */
-router.get("/user_account", function (req, res){
-  res.render("user/user_account", { title: "User Account", message: req.flash("error")[0] });
 });
 
 module.exports = router;
