@@ -9,8 +9,10 @@
 const dotenv = require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+
 const http = require("http");
 const socketIo = require("socket.io");
+
 const path = require("path");
 const multer = require("multer");
 const flash = require("connect-flash");
@@ -22,6 +24,9 @@ const session = require("express-session");
 // const upload = multer;
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+
 app.use(cors());
 app.use(multer().none());
 app.use(express.urlencoded({ extended: true }));
@@ -31,13 +36,16 @@ app.use(flash());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
+const authMiddleware = require("./auth/auth.middleware");
 const authRouter = require("./auth/auth.route");
 const userRouter = require("./routes/user.route");
 const shelterRouter = require("./routes/shelter.route");
 const disasterRouter = require("./routes/disaster.route");
 const disasterZoneRouter = require("./routes/disasterzone.route");
 const notificationsRouter = require("./routes/notifications.route");
-const authMiddleware = require("./auth/auth.middleware");
+const notificationsController = require("./controllers/notifications.controller");
+
+notificationsController.setIo(io);
 
 //
 app.use(
@@ -55,6 +63,11 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+io.on("connection", (socket) => {
+  console.log("New client connected");
+  socket.on("disconnect", () => console.log("Client disconnected"));
+});
 
 /*
  * Routes
@@ -95,6 +108,8 @@ const nodeEmailMidd = require("./middleware/nodemailer");
 
 const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log("App listening at http://localhost:" + PORT);
 });
+
+module.exports = { io };
