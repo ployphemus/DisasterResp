@@ -21,7 +21,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
         console.log('Connected to the SQLite database.');
 
         // Automatically create the users table if it doesn't exist
-        const createTableSql = `
+        const createUsersTableSql = `
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             First_Name TEXT,
@@ -35,11 +35,33 @@ const db = new sqlite3.Database(dbPath, (err) => {
             resetTokenExpiration TEXT
         )`;
 
-        db.run(createTableSql, (err) => {
+        db.run(createUsersTableSql, (err) => {
             if (err) {
                 console.error('Error creating users table:', err.message);
             } else {
                 console.log('Users table created or already exists');
+            }
+        });
+
+        // Automatically create the shelters table if it doesn't exist
+        const createSheltersTableSql = `
+        CREATE TABLE IF NOT EXISTS shelters (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name TEXT,
+            Latitude REAL,
+            Longitude REAL,
+            Shelter_address TEXT,
+            Maximum_Capacity INTEGER,
+            Current_Capacity INTEGER,
+            disasterzone_id INTEGER,
+            FOREIGN KEY (disasterzone_id) REFERENCES disasterzones(id) ON DELETE CASCADE
+        )`;
+
+        db.run(createSheltersTableSql, (err) => {
+            if (err) {
+                console.error('Error creating shelters table:', err.message);
+            } else {
+                console.log('Shelters table created or already exists');
             }
         });
     }
@@ -194,28 +216,6 @@ database.delete("/removeuser/:id", (req, res) => {
             return res.status(500).send("Error removing user");
         }
         res.send(`User with ID ${userID} removed`);
-    });
-});
-
-// Create shelters table
-database.get("/createshelters", (req, res) => {
-    let createTableSql = `CREATE TABLE IF NOT EXISTS shelters (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        Name TEXT,
-        Latitude REAL,
-        Longitude REAL,
-        Shelter_address TEXT,
-        Maximum_Capacity INTEGER,
-        Current_Capacity INTEGER,
-        disasterzone_id INTEGER,
-        FOREIGN KEY (disasterzone_id) REFERENCES disasterzones(id) ON DELETE CASCADE
-    )`;
-    db.run(createTableSql, (err) => {
-        if (err) {
-            console.error('Error creating shelters table:', err.message);
-            return res.status(500).send("Error creating shelters table");
-        }
-        res.send("Shelters table created");
     });
 });
 
