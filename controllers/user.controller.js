@@ -465,7 +465,7 @@ async function getAdminShelters(req, res, next) {
  * @param {*} res The response object
  * @param {*} next The next middleware function
  */
-function getUserResources(req, res, next) {
+async function getUserResources(req, res, next) {
   console.log("getUserResources called");
   try {
     let loggedIn = req.user ? true : false;
@@ -495,6 +495,34 @@ function getUserResources(req, res, next) {
   }
 }
 
+async function getUserAccountPage(req, res, next) {
+  console.log("getUserAccountPage called");
+  try {
+    let loggedIn = req.user ? true : false;
+    let user_type = null;
+    let user_id = null;
+    if (req.user) {
+      user_type = req.user.userType;
+      user_id = req.user.id;
+    }
+    console.log("Logged in:", loggedIn);
+    console.log("User type:", user_type);
+    console.log("User ID:", user_id);
+
+    res.render("user/user_account", {
+      loggedIn: loggedIn,
+      user_type: user_type,
+      user_id: user_id,
+      title: "User Account",
+      message: req.flash("error")[0],
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to render user account" });
+    console.error(err);
+    next(err);
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -511,4 +539,5 @@ module.exports = {
   getAdminDashboard,
   getAdminShelters,
   getUserResources,
+  getUserAccountPage,
 };

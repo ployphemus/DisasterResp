@@ -7,53 +7,57 @@
 const express = require("express");
 const router = express.Router();
 
-const disasterZoneController = require("../controllers/notifications.controller");
+const notificationsController = require("../controllers/notifications.controller");
 const authMiddleware = require("../auth/auth.middleware");
 
-router.get("/all", disasterZoneController.getAllNotifs);
-router.get("/all/users", disasterZoneController.getAllNotifsUsers);
-router.get("/all/AdminId/:id", disasterZoneController.getAllNotifsByAdminId);
-router.get("/all/AdminId/", disasterZoneController.getAllNotifsByAdminId);
+router.get("/all", notificationsController.getAllNotifs);
+router.get("/all/users", notificationsController.getAllNotifsUsers);
+router.get("/all/AdminId/:id", notificationsController.getAllNotifsByAdminId);
+router.get("/all/AdminId/", notificationsController.getAllNotifsByAdminId);
 router.get(
   "/all/NotifId-w-users/:id",
-  disasterZoneController.getAllNotifsByNotifIdWithUsers
+  notificationsController.getAllNotifsByNotifIdWithUsers
 );
 router.get(
   "/all/NotifId-w-users",
-  disasterZoneController.getAllNotifsByNotifIdWithUsers
+  notificationsController.getAllNotifsByNotifIdWithUsers
 );
 router.get(
   "/all/NotifId-info/:id",
-  disasterZoneController.getAllNotifsByNotifIdWithUsersAndDisasterZone
+  notificationsController.getAllNotifsByNotifIdWithUsersAndDisasterZone
 );
 router.get(
   "/all/NotifId-info",
-  disasterZoneController.getAllNotifsByNotifIdWithUsersAndDisasterZone
+  notificationsController.getAllNotifsByNotifIdWithUsersAndDisasterZone
 );
 router.get(
   "/all/DisasterId/:id",
-  disasterZoneController.getAllNotifsByDisasterId
+  notificationsController.getAllNotifsByDisasterId
 );
-router.get("/all/DisasterId", disasterZoneController.getAllNotifsByDisasterId);
+router.get("/all/DisasterId", notificationsController.getAllNotifsByDisasterId);
 router.get(
   "/all/DisasterId-info/:id",
-  disasterZoneController.getAllNotifsByDisasterIdWithUsersAndDisasterZone
+  notificationsController.getAllNotifsByDisasterIdWithUsersAndDisasterZone
 );
 router.get(
   "/all/DisasterId-info",
-  disasterZoneController.getAllNotifsByDisasterIdWithUsersAndDisasterZone
+  notificationsController.getAllNotifsByDisasterIdWithUsersAndDisasterZone
 );
-router.post("/create-notif", disasterZoneController.createNotification);
+router.post("/create-notif", notificationsController.createNotification);
+router.post(
+  "/create-notif-broadcast",
+  notificationsController.createNotificationAndBroadcast
+);
 router.post(
   "/create-notif-user",
-  disasterZoneController.createNotificationUser
+  notificationsController.createNotificationUser
 );
-router.put("/update-notif/:id", disasterZoneController.updateNotificationById);
-router.post("/update-notif", disasterZoneController.updateNotificationById);
+router.put("/update-notif/:id", notificationsController.updateNotificationById);
+router.post("/update-notif", notificationsController.updateNotificationById);
 router.delete(
   "/delete-notif/:id",
-  disasterZoneController.deleteNotificationById
+  notificationsController.deleteNotificationById
 );
-router.get("/delete-notif/:id", disasterZoneController.deleteNotificationById);
+router.get("/delete-notif/:id", notificationsController.deleteNotificationById);
 
 module.exports = router;

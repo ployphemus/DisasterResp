@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 15, 2024 at 06:05 AM
+-- Generation Time: Oct 18, 2024 at 02:26 AM
 -- Server version: 10.11.7-MariaDB
 -- PHP Version: 8.2.4
 
@@ -144,7 +144,17 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `Message`, `admin_id`, `disasterzone_id`) VALUES
-(1, 'Test Message', 3, 18);
+(1, 'Test Message', 3, 18),
+(4, 'Test', 3, 18),
+(5, 'Test', 3, 18),
+(6, 'Test', 3, 18),
+(7, 'Test', 3, 18),
+(8, 'Test', 3, 18),
+(9, 'Test', 3, 18),
+(10, 'Test', 3, 18),
+(11, 'Test', 3, 17),
+(12, 'Test', 3, 17),
+(13, 'Test', 3, 17);
 
 -- --------------------------------------------------------
 
@@ -428,7 +438,7 @@ ALTER TABLE `landslides`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `shelters`

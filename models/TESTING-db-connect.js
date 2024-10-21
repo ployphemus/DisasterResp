@@ -21,7 +21,7 @@ connectDB.getConnection((err, connection) => {
 
 function all(sql, params = []) {
   return new Promise((resolve, reject) => {
-    connectDB.query(sql, params, (err, results) => {
+    connectDB.run(sql, params, (err, results) => {
       if (err) {
         console.error("Error executing query:", err);
         return reject(err);
@@ -33,7 +33,7 @@ function all(sql, params = []) {
 
 function get(sql, params = []) {
   return new Promise((resolve, reject) => {
-    connectDB.query(sql, params, (err, results) => {
+    connectDB.run(sql, params, (err, results) => {
       if (err) {
         console.error("Error executing query:", err);
         return reject(err);
@@ -45,7 +45,7 @@ function get(sql, params = []) {
 
 function run(sql, params = []) {
   return new Promise((resolve, reject) => {
-    connectDB.query(sql, params, (err, results) => {
+    connectDB.run(sql, params, (err, results) => {
       if (err) {
         console.error("Error executing query:", err);
         return reject(err);

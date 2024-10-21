@@ -13,6 +13,13 @@ app.use(express.json());
 
 const model = require("../models/notifications.model");
 
+let io;
+
+const setIo = (socketIo) => {
+  io = socketIo;
+};
+const { sendEmailFunc } = require("../middleware/nodemailer");
+
 /**
  * This function getAllNotifs() is used to get all the notifications from the database by calling the getAllNotifs() function from the notifications.model.js file.
  * @param {*} req The request object
@@ -328,7 +335,31 @@ async function deleteNotificationById(req, res, next) {
   }
 }
 
+const createNotificationAndBroadcast = async (req, res, next) => {
+  console.log("createNotificationAndBroadcast called");
+  try {
+    let notifmessage = req.body.Message;
+    let adminId = req.body.AdminId;
+    let disasterzoneId = req.body.DisasterzoneId;
+
+    const params = [notifmessage, adminId, disasterzoneId];
+    const notification = await model.createNotification(params);
+    console.log("Notification created:", notification);
+
+    io.emit("disaster-alert", {
+      message: notifmessage,
+    });
+
+    res.json(notification);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create notification" });
+    console.error(err);
+    next(err);
+  }
+};
+
 module.exports = {
+  setIo,
   getAllNotifs,
   getAllNotifsUsers,
   getAllNotifsByAdminId,
@@ -340,4 +371,5 @@ module.exports = {
   createNotificationUser,
   updateNotificationById,
   deleteNotificationById,
+  createNotificationAndBroadcast,
 };
