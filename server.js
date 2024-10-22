@@ -96,9 +96,9 @@ app.get("/", (req, res) => {
     res.redirect("/users/admin/dashboard");
   } else {
     res.render("index", {
-      loggedIn: req.loggedIn,
-      user_type: req.user_type,
-      user_id: req.user_id,
+      loggedIn: loggedIn,
+      user_type: user_type,
+      user_id: user_id,
     });
   }
 });
