@@ -1,43 +1,100 @@
 let map;
 let service; // Declare the PlacesService globally
 let markers = []; // Store markers globally
+let userMarker; // Marker for the user's location
 let circles = []; // Array to hold the circle objects for easier access
+let infoWindow; // InfoWindow to display details
 
 function initMap() {
-  const center = { lat: 36.044659, lng: -79.766235 }; //center point Greensboro, NC
+  console.log("Map is initializing...");
+  const center = { lat: 36.044659, lng: -79.766235 }; // Center point Greensboro, NC
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 10,
+    center: center,
+  });
+
+  // Try to get user's real-time location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        // Center the map on user's location
+        map.setCenter(userLocation);
+        userMarker = new google.maps.Marker({
+          position: userLocation,
+          map: map,
+          title: "You are here",
+          icon: {
+            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png", // Blue marker icon
+          },
+        });
+
+        // Initialize PlacesService
+        service = new google.maps.places.PlacesService(map);
+
+        // Search for schools around the user's location
+        searchNearbySchools(userLocation);
+
+        // Fetch and draw all disaster zones
+        fetchDisasterZones();
+
+        // Add event listeners for dragging and zooming
+        google.maps.event.addListener(map, "dragend", () => {
+          const newCenter = map.getCenter(); // Get the new center after dragging
+          searchNearbySchools(newCenter.toJSON()); // Call search with new center
+        });
+
+        google.maps.event.addListener(map, "zoom_changed", () => {
+          const newCenter = map.getCenter(); // Get the new center after zooming
+          searchNearbySchools(newCenter.toJSON()); // Call search with new center
+        });
+      },
+      (error) => {
+        handleLocationError(true);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+  } else {
+    // Browser doesn't support Geolocation
+    handleLocationError(false);
+  }
+}
+
+function handleLocationError(browserHasGeolocation) {
+  const center = { lat: 36.044659, lng: -79.766235 }; // Fallback center point
   map = new google.maps.Map(document.getElementById("map"), {
     center: center,
     zoom: 14,
   });
 
-  // Initialize PlacesService
-  service = new google.maps.places.PlacesService(map);
+  const message = browserHasGeolocation
+    ? "Error: The Geolocation service failed."
+    : "Error: Your browser doesn't support geolocation.";
+  alert(message);
+}
 
-  // Initialize InfoWindow
-  infoWindow = new google.maps.InfoWindow();
-
-  if (!document.getElementById("schools-table")) {
-    // Fetch and draw all disaster zones
-    fetchDisasterZones();
-
-    // Fetch and draw all shelters
-    fetchShelters();
-    return;
-  } else {
-    // Search for schools around the default center
-    searchNearbySchools(center);
-
-    // Add event listeners for dragging and zooming
-    google.maps.event.addListener(map, "dragend", () => {
-      const newCenter = map.getCenter();
-      searchNearbySchools(newCenter);
-    });
-
-    google.maps.event.addListener(map, "zoom_changed", () => {
-      const newCenter = map.getCenter();
-      searchNearbySchools(newCenter);
-    });
-  }
+// Function to calculate the distance between two locations
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 3958.8; // Radius of the Earth in miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in miles
+  return distance.toFixed(2); // Return distance with 2 decimal places
 }
 
 function searchNearbySchools(location) {
@@ -54,7 +111,7 @@ function searchNearbySchools(location) {
       clearTable(); // Clear the table before adding new data
       for (let i = 0; i < results.length; i++) {
         createMarker(results[i]);
-        addSchoolToTable(results[i]);
+        addSchoolToTable(results[i], location); // Pass user location to the function
       }
     }
   });
@@ -72,7 +129,12 @@ function createMarker(place) {
   service.getDetails({ placeId: place.place_id }, (placeDetails, status) => {
     if (status === google.maps.places.PlacesServiceStatus.OK) {
       const infowindow = new google.maps.InfoWindow({
-        content: `<strong>${placeDetails.name}</strong><br>${placeDetails.formatted_address}`,
+        content: `<strong>${placeDetails.name}</strong><br>${
+          placeDetails.formatted_address
+        }<br>
+                          <button onclick="saveShelter('${
+                            placeDetails.name
+                          }', ${place.geometry.location.lat()}, ${place.geometry.location.lng()}, 100)">Save Shelter</button>`, // Add button to save shelter
       });
 
       // Add marker click listener to show info window
@@ -83,17 +145,39 @@ function createMarker(place) {
   });
 }
 
+// Function to save shelter to the database
+async function saveShelter(name, latitude, longitude, capacity) {
+  try {
+    const response = await fetch("/shelters", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, latitude, longitude, capacity }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to save shelter");
+    }
+
+    const shelter = await response.json();
+    console.log("Shelter saved:", shelter);
+  } catch (error) {
+    console.error("Error saving shelter:", error);
+  }
+}
+
 // Function to add schools to the table
-function addSchoolToTable(school) {
+function addSchoolToTable(school, userLocation) {
   const tableBody = document.querySelector("#schools-table tbody");
   const row = document.createElement("tr");
 
   const nameCell = document.createElement("td");
-  nameCell.textContent = school.name;
+  nameCell.textContent = school.name; // Ensure school.name is defined
   row.appendChild(nameCell);
 
   const addressCell = document.createElement("td");
-  addressCell.textContent = school.vicinity; // Use vicinity for basic address
+  addressCell.textContent = school.vicinity; // Ensure school.vicinity is defined
   row.appendChild(addressCell);
 
   const actionCell = document.createElement("td");
@@ -105,6 +189,17 @@ function addSchoolToTable(school) {
   navigateButton.target = "_blank"; // Open in new tab
   actionCell.appendChild(navigateButton);
   row.appendChild(actionCell);
+
+  // Calculate and display distance
+  const distance = calculateDistance(
+    userLocation.lat,
+    userLocation.lng,
+    school.geometry.location.lat(),
+    school.geometry.location.lng()
+  );
+  const distanceCell = document.createElement("td");
+  distanceCell.textContent = `${distance} miles`; // Display distance in miles
+  row.appendChild(distanceCell);
 
   tableBody.appendChild(row);
 }
