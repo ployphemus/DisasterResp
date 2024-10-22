@@ -1,7 +1,10 @@
 package com.example.basic2
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -10,7 +13,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
@@ -21,7 +27,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavHostController
@@ -31,27 +36,24 @@ import androidx.navigation.compose.rememberNavController
 import com.example.basic2.ui.theme.Basic2Theme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-import com.google.android.gms.tasks.Task
-import com.google.firebase.dataconnect.LogLevel
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.gson.*
-import com.google.gson.JsonParser
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
-import kotlinx.coroutines.launch
-import io.ktor.client.call.body
+import com.google.gson.JsonParser
+import com.google.gson.annotations.SerializedName
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.forms.submitForm
-import java.util.logging.Logger
+import kotlinx.coroutines.launch
 
 const val IS_DEVELOPMENT = true
 
@@ -79,7 +81,7 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .systemBarsPadding() // Adjusts for the status and navigation bars
+                        .systemBarsPadding()
                         .border(
                             width = 10.dp,
                             brush = Brush.linearGradient(
@@ -96,7 +98,7 @@ class MainActivity : ComponentActivity() {
                             ),
                             shape = RectangleShape
                         )
-                        .padding(10.dp) // Padding to prevent content overlap with the border
+                        .padding(10.dp)
                 ) {
                     val navController = rememberNavController()
                     AppWithLoginDialog(
@@ -127,11 +129,10 @@ fun AppWithLoginDialog(
 
     if (!showDialog) {
         // Main app content
-        NavHost(navController = navController, startDestination = "reportScreen") {
-            composable("reportScreen") {
-                ReportScreen(
+        NavHost(navController = navController, startDestination = "ShelterListScreen") {
+            composable("ShelterListScreen") {
+                ShelterListScreen(
                     navController = navController,
-                    location = null,
                     fusedLocationClient = fusedLocationClient
                 )
             }
@@ -147,6 +148,210 @@ fun AppWithLoginDialog(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShelterListScreen(
+    navController: NavHostController,
+    fusedLocationClient: FusedLocationProviderClient
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var shelters by remember { mutableStateOf<List<Shelter>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var disasterZones by remember { mutableStateOf<List<DisasterZone>>(emptyList()) }
+    var userLocation by remember { mutableStateOf<Location?>(null) }
+
+    // Fetch shelters and disaster zones when the composable is first displayed
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            // Fetch user's location
+            val fetchedShelters = fetchShelters()
+            val fetchedZones = fetchDisasterZones()
+            fetchedShelters?.let { shelters = it }
+            fetchedZones?.let { disasterZones = it }
+            getUserLocation(fusedLocationClient) { location ->
+                userLocation = location
+
+                // Fetch shelters and disaster zones
+//                val fetchedShelters = fetchShelters()
+//                val fetchedZones = fetchDisasterZones()
+//                fetchedShelters?.let { shelters = it }
+//                fetchedZones?.let { disasterZones = it }
+
+                isLoading = false
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Available Shelters") },
+                navigationIcon = {
+                    MenuButton(navController = navController)
+                }
+            )
+        }
+    ) { paddingValues ->
+        if (isLoading || userLocation == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(modifier = Modifier.padding(paddingValues)) {
+                // Map
+                ShelterMap(
+                    shelters = shelters,
+                    disasterZones = disasterZones,
+                    userLocation = userLocation!!
+                )
+                // Shelter List
+                ShelterList(shelters = shelters)
+            }
+        }
+    }
+}
+
+@Composable
+fun ShelterMap(
+    shelters: List<Shelter>,
+    disasterZones: List<DisasterZone>,
+    userLocation: Location
+) {
+    val context = LocalContext.current
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            LatLng(userLocation.latitude, userLocation.longitude),
+            10f
+        )
+    }
+
+    GoogleMap(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        cameraPositionState = cameraPositionState
+    ) {
+        // User location marker
+        Marker(
+            state = MarkerState(position = LatLng(userLocation.latitude, userLocation.longitude)),
+            title = "Your Location",
+            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+        )
+
+        // Markers for shelters
+        shelters.forEach { shelter ->
+            Marker(
+                state = MarkerState(position = LatLng(shelter.latitude, shelter.longitude)),
+                title = shelter.name,
+                snippet = "Capacity: ${shelter.currentCapacity}/${shelter.maximumCapacity}",
+                onClick = {
+                    // Open Google Maps directions when marker is tapped
+                    val gmmIntentUri = Uri.parse("google.navigation:q=${shelter.latitude},${shelter.longitude}")
+                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                    mapIntent.setPackage("com.google.android.apps.maps")
+                    mapIntent.resolveActivity(context.packageManager)?.let {
+                        context.startActivity(mapIntent)
+                    }
+                    true
+                }
+            )
+        }
+
+        // Circles for disaster zones
+        disasterZones.forEach { zone ->
+            Circle(
+                center = LatLng(zone.latitude, zone.longitude),
+                radius = zone.radius * 1609.34, // Convert miles to meters
+                strokeColor = Color(android.graphics.Color.parseColor("#${zone.hexColor}")),
+                fillColor = Color(android.graphics.Color.parseColor("#${zone.hexColor}")).copy(alpha = 0.35f),
+                strokeWidth = 2f
+            )
+        }
+    }
+}
+
+@Composable
+fun ShelterList(shelters: List<Shelter>) {
+    LazyColumn {
+        items(shelters) { shelter ->
+            ShelterListItem(shelter = shelter)
+        }
+    }
+}
+
+@Composable
+fun ShelterListItem(shelter: Shelter) {
+    val context = LocalContext.current
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
+            .clickable {
+                // Open Google Maps directions
+                val gmmIntentUri = Uri.parse("google.navigation:q=${shelter.latitude},${shelter.longitude}")
+                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                mapIntent.setPackage("com.google.android.apps.maps")
+                mapIntent.resolveActivity(context.packageManager)?.let {
+                    context.startActivity(mapIntent)
+                }
+            },
+        tonalElevation = 2.dp
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(text = shelter.name, style = MaterialTheme.typography.titleMedium)
+            Text(text = "Capacity: ${shelter.currentCapacity}/${shelter.maximumCapacity}")
+        }
+    }
+}
+
+@Composable
+fun MenuButton(navController: NavHostController) {
+    var expanded by remember { mutableStateOf(false) }
+
+    // Icon button for the overflow menu
+    IconButton(onClick = { expanded = true }) {
+        Icon(
+            imageVector = Icons.Default.MoreVert,
+            contentDescription = "Menu"
+        )
+    }
+
+    // Dropdown menu that appears when the menu button is clicked
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false }
+    ) {
+        DropdownMenuItem(
+            text = { Text("Local Flood Info") },
+            onClick = {
+                navController.navigate("OnlineInfo")
+                expanded = false
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Earthquake Info") },
+            onClick = {
+                navController.navigate("EQinfo")
+                expanded = false
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Wildfire Info") },
+            onClick = {
+                navController.navigate("WildfireScreen")
+                expanded = false
+            }
+        )
+    }
+}
+
 @Composable
 fun LoginDialog(
     onDismiss: () -> Unit,
@@ -228,264 +433,121 @@ fun LoginDialog(
         }
     )
 }
-//http://127.0.0.1:8000/auth/login
-data class LoginResponse(
-    val status: String,
-    val code: String
-)
 
 suspend fun performLogin(username: String, password: String): Boolean {
     try {
-            val client = HttpClient(OkHttp) {
-                install(ContentNegotiation) {
-                    gson()
-                }
-                install(HttpCookies) {
-                    storage = AcceptAllCookiesStorage()
-                }
-
-                expectSuccess = false
-                defaultRequest {
-                    headers.append(HttpHeaders.Accept, "application/json")
-                }
+        val client = HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                gson()
+            }
+            install(HttpCookies) {
+                storage = AcceptAllCookiesStorage()
             }
 
-            val serverIp = "192.168.56.1" // Replace with your server's IP
-            val response: HttpResponse = client.submitForm(
-                url = "http://$serverIp:8000/auth/login",
-                formParameters = Parameters.build {
-                    append("Email", username)
-                    append("Password", password)
-                },
-                encodeInQuery = false
-            ) {
-                /**headers {
-                    append(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
-                }**/
+            expectSuccess = false
+            defaultRequest {
+                headers.append(HttpHeaders.Accept, "application/json")
             }
-
-            val responseBody = response.bodyAsText()
-            println("Response status: ${response.status}")
-            println("Response body: $responseBody")
-
-            client.close()
-
-            val jsonResponse = JsonParser.parseString(responseBody).asJsonObject
-            val success = jsonResponse.get("success").asBoolean
-
-            return success
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return false
         }
-    }
 
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ReportScreen(
-    navController: NavHostController,
-    fusedLocationClient: FusedLocationProviderClient,
-    location: Pair<Double, Double>?
-) {
-    var showDialog by remember { mutableStateOf(false) }
-    var reportText by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-    val context = LocalContext.current
-
-    // Define the permission launcher inside the composable
-    val requestPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            getLocation(fusedLocationClient) { lat, lon ->
-                location = Pair(lat, lon) // Now location is mutable
-            }
-        } else {
-            Log.e("Permission", "Location permission denied")
-        }
-    }
-
-    // Camera position state for GoogleMap
-    val cameraPositionState = rememberCameraPositionState()
-
-    // Update the camera position when the location is available
-    LaunchedEffect(location) {
-        location?.let {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(it.first, it.second), 15f)
-        }
-    }
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Top App Bar with Menu Button
-        TopAppBar(
-            title = { Text("Report Screen") },
-            actions = {
-                MenuButton(navController = navController)
-            }
+        val serverIp = "192.168.56.1" // Replace with your server's IP
+        val response: HttpResponse = client.submitForm(
+            url = "http://$serverIp:8000/auth/login",
+            formParameters = Parameters.build {
+                append("Email", username)
+                append("Password", password)
+            },
+            encodeInQuery = false
         )
 
-        // Google Map
-        GoogleMap(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp),
-            cameraPositionState = cameraPositionState
-        ) {
-            location?.let {
-                Marker(
-                    state = MarkerState(position = LatLng(it.first, it.second)),
-                    title = "Your Location"
-                )
-            }
-        }
+        val responseBody = response.bodyAsText()
+        println("Response status: ${response.status}")
+        println("Response body: $responseBody")
 
-        Text(
-            text = "Please use the report button to send an incident report to the response team. This is for reporting things like downed trees and powerlines" +
-                    ", washed out or flooded roads, and small brush fires. !!If you are in immediate danger or require medical help, CALL 911!!",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
+        client.close()
 
-        // Button at the bottom
-        Spacer(modifier = Modifier.weight(1f)) // Pushes button to the bottom
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(45.dp)
-        ) {
-            Button(onClick = {
-                // Request location when button is clicked
-                if (ActivityCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // Launch permission request
-                    requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                } else {
-                    // Permission already granted, get the location
-                    getLocation(fusedLocationClient) { lat, lon ->
-                        location = Pair(lat, lon) // Now location is mutable
-                    }
-                }
-                showDialog = true
-            }) {
-                Text(text = "Send Report")
-            }
-        }
+        val jsonResponse = JsonParser.parseString(responseBody).asJsonObject
+        val success = jsonResponse.get("success").asBoolean
 
-        // Display a dialog for report entry
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text(text = "Enter Report") },
-                text = {
-                    Column {
-                        Text("Please enter your report:")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TextField(
-                            value = reportText,
-                            onValueChange = { reportText = it },
-                            label = { Text("Report") }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        location?.let { (lat, lon) ->
-                            Text("Current Location: Lat: $lat, Lon: $lon")
-                        } ?: Text("Fetching location...")
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        // Save reportText and location to use for API call
-                        showDialog = false
-                    }) {
-                        Text("Submit")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
+        return success
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return false
     }
 }
 
+//@SuppressLint("MissingPermission")
+//fun getUserLocation(
+//    fusedLocationClient: FusedLocationProviderClient,
+//    onLocationReceived: (Location) -> Unit
+//) {
+//    try {
+//        fusedLocationClient.lastLocation
+//            .addOnSuccessListener { location: Location? ->
+//                location?.let {
+//                    onLocationReceived(it)
+//                } ?: run {
+//                    Log.e("MainActivity", "Location is null")
+//                }
+//            }
+//            .addOnFailureListener { exception ->
+//                Log.e("MainActivity", "Failed to get location", exception)
+//            }
+//    } catch (e: SecurityException) {
+//        Log.e("MainActivity", "Location permission not granted", e)
+//    }
+//}
 
-@Composable
-fun MenuButton(navController: NavHostController) {
-    var expanded by remember { mutableStateOf(false) }
-
-    // Icon button for the overflow menu
-    IconButton(onClick = { expanded = true }) {
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = "Menu"
-        )
-    }
-
-    // Dropdown menu that appears when the menu button is clicked
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false }
-    ) {
-        DropdownMenuItem(
-            text = { Text("Local Flood Info") },
-            onClick = {
-                // Navigate to the new screen
-                navController.navigate("OnlineInfo")
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Earthquake Info") },
-            onClick = {
-                navController.navigate("EQinfo")
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Wildfire Info") },
-            onClick = {
-                navController.navigate("WildfireScreen")
-                expanded = false
-            }
-        )
-    }
-}
-
-fun getLocation(
-    fusedLocationClient: FusedLocationProviderClient,
-    onLocationReceived: (Double, Double) -> Unit
-) {
-    try {
-        val locationResult: Task<android.location.Location> =
-            fusedLocationClient.lastLocation
-        locationResult.addOnSuccessListener { location: android.location.Location? ->
-            location?.let {
-                onLocationReceived(it.latitude, it.longitude)
-            }
+suspend fun fetchShelters(): List<Shelter>? {
+    val client = HttpClient(OkHttp) {
+        install(ContentNegotiation) {
+            gson()
         }
-    } catch (e: SecurityException) {
-        Log.e("MainActivity", "Location permission not granted", e)
+    }
+    return try {
+        val serverIp = "http://yourserver.com" // Replace with your server's address
+        val shelters: List<Shelter> = client.get("$serverIp/shelters/all").body()
+        shelters
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    } finally {
+        client.close()
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ReportScreenPreview() {
-    Basic2Theme {
-        val navController = rememberNavController()
-        ReportScreen(navController = navController, location = null, fusedLocationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current))
+suspend fun fetchDisasterZones(): List<DisasterZone>? {
+    val client = HttpClient(OkHttp) {
+        install(ContentNegotiation) {
+            gson()
+        }
+    }
+    return try {
+        val serverIp = "http://yourserver.com" // Replace with your server's address
+        val disasterZones: List<DisasterZone> = client.get("$serverIp/disasterzone/all").body()
+        disasterZones
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    } finally {
+        client.close()
     }
 }
+
+// Shelter data class
+data class Shelter(
+    @SerializedName("Name") val name: String,
+    @SerializedName("Latitude") val latitude: Double,
+    @SerializedName("Longitude") val longitude: Double,
+    @SerializedName("Maximum_Capacity") val maximumCapacity: Int,
+    @SerializedName("Current_Capacity") val currentCapacity: Int
+)
+
+// Disaster zone data class
+data class DisasterZone(
+    @SerializedName("Name") val name: String,
+    @SerializedName("Latitude") val latitude: Double,
+    @SerializedName("Longitude") val longitude: Double,
+    @SerializedName("Radius") val radius: Double, // in miles
+    @SerializedName("HexColor") val hexColor: String
+)

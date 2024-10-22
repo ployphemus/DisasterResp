@@ -1,5 +1,12 @@
 package com.example.basic2
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.location.Location
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,31 +15,88 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavHostController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnlineInfo(navController: NavHostController) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var streamData by remember { mutableStateOf<List<TimeSeries>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var userLocation by remember { mutableStateOf<Location?>(null) }
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val locationPermissionGranted = remember { mutableStateOf(false) }
 
-    // Fetch data when the composable is first displayed
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            val response = getUSGSStreamHeight(
-                centerLat = 40.7128,  // Replace with user's current latitude if available
-                centerLon = -74.0060, // Replace with user's current longitude if available
-                radiusInMiles = 25.0  // Adjust radius as needed
-            )
-            response?.let {
-                streamData = it.value.timeSeries
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        locationPermissionGranted.value = isGranted
+        if (isGranted) {
+            getUserLocation(fusedLocationClient) { location ->
+                userLocation = location
+                // Now fetch the data
+                coroutineScope.launch {
+                    val response = getUSGSStreamHeight(
+                        centerLat = userLocation!!.latitude,
+                        centerLon = userLocation!!.longitude,
+                        radiusInMiles = 25.0  // Adjust radius as needed
+                    )
+                    response?.let {
+                        streamData = it.value.timeSeries
+                    }
+                    isLoading = false
+                }
             }
+        } else {
+            Log.e("StreamMonitorsScreen", "Location permission not granted")
             isLoading = false
+        }
+    }
+
+    // Request location permission
+    LaunchedEffect(Unit) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Request permissions
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            locationPermissionGranted.value = true
+            getUserLocation(fusedLocationClient) { location ->
+                userLocation = location
+                // Now fetch the data
+                coroutineScope.launch {
+                    val response = getUSGSStreamHeight(
+                        centerLat = userLocation!!.latitude,
+                        centerLon = userLocation!!.longitude,
+                        radiusInMiles = 25.0  // Adjust radius as needed
+                    )
+                    response?.let {
+                        streamData = it.value.timeSeries
+                    }
+                    isLoading = false
+                }
+            }
         }
     }
 
@@ -49,7 +113,7 @@ fun OnlineInfo(navController: NavHostController) {
             )
         }
     ) { paddingValues ->
-        if (isLoading) {
+        if (isLoading || userLocation == null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -59,15 +123,71 @@ fun OnlineInfo(navController: NavHostController) {
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                items(streamData) { item ->
-                    StreamMonitorItem(timeSeries = item)
-                }
+                // Map
+                StreamMonitorMap(
+                    streamData = streamData,
+                    userLocation = userLocation!!
+                )
+                // Stream Monitor List
+                StreamMonitorList(streamData = streamData)
             }
+        }
+    }
+}
+
+@Composable
+fun StreamMonitorMap(streamData: List<TimeSeries>, userLocation: Location) {
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            LatLng(userLocation.latitude, userLocation.longitude),
+            10f
+        )
+    }
+
+    GoogleMap(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        cameraPositionState = cameraPositionState
+    ) {
+        // User location marker
+        Marker(
+            state = MarkerState(position = LatLng(userLocation.latitude, userLocation.longitude)),
+            title = "Your Location",
+            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+        )
+
+        // Stream monitor markers
+        streamData.forEach { item ->
+            val latitude = item.sourceInfo.geoLocation.geogLocation.latitude
+            val longitude = item.sourceInfo.geoLocation.geogLocation.longitude
+            val siteName = item.sourceInfo.siteName
+            val value = item.values.firstOrNull()?.measurements?.firstOrNull()?.value
+
+            Marker(
+                state = MarkerState(position = LatLng(latitude, longitude)),
+                title = siteName,
+                snippet = "Value: $value",
+                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+            )
+        }
+    }
+}
+
+
+@Composable
+fun StreamMonitorList(streamData: List<TimeSeries>) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        items(streamData) { item ->
+            StreamMonitorItem(timeSeries = item)
         }
     }
 }
@@ -75,17 +195,10 @@ fun OnlineInfo(navController: NavHostController) {
 @Composable
 fun StreamMonitorItem(timeSeries: TimeSeries) {
     val siteName = timeSeries.sourceInfo.siteName
-    val siteCode = timeSeries.sourceInfo.siteCode.firstOrNull()?.value ?: "N/A"
-    val latitude = timeSeries.sourceInfo.geoLocation.geogLocation.latitude
-    val longitude = timeSeries.sourceInfo.geoLocation.geogLocation.longitude
-    val latestMeasurement = timeSeries.values.firstOrNull()?.measurements?.lastOrNull()
-    val gageHeight = latestMeasurement?.value?.toDoubleOrNull() ?: 0.0
-
-    // Determine flood stage and corresponding color
-    val (floodStage, color) = getFloodStageAndColor(gageHeight)
+    val value = timeSeries.values.firstOrNull()?.measurements?.firstOrNull()?.value
+    val dateTime = timeSeries.values.firstOrNull()?.measurements?.firstOrNull()?.dateTime
 
     Surface(
-        color = color,
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp),
@@ -93,10 +206,8 @@ fun StreamMonitorItem(timeSeries: TimeSeries) {
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
             Text(text = siteName, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Site Code: $siteCode")
-            Text(text = "Location: ($latitude, $longitude)")
-            Text(text = "Gage Height: $gageHeight ft")
-            Text(text = "Flood Stage: $floodStage")
+            Text(text = "Value: $value")
+            Text(text = "Date/Time: $dateTime")
         }
     }
 }

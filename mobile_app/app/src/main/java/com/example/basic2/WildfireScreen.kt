@@ -142,7 +142,6 @@ fun WildfireScreen(navController: NavHostController) {
     }
 
 
-    // UI Code remains the same as before
     Scaffold(
         topBar = {
             TopAppBar(
