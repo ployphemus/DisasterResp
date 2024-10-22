@@ -335,6 +335,12 @@ async function deleteNotificationById(req, res, next) {
   }
 }
 
+/**
+ * This function createNotificationAndBroadcast() is used to create a new notification in the database and broadcast it to all users in the disaster zone by calling the createNotification() function from the notifications.model.js file and emitting a socket event.
+ * @param {*} req The request object containing the parameters of the notification to create from req.body
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 const createNotificationAndBroadcast = async (req, res, next) => {
   console.log("createNotificationAndBroadcast called");
   try {
@@ -342,17 +348,64 @@ const createNotificationAndBroadcast = async (req, res, next) => {
     let adminId = req.body.AdminId;
     let disasterzoneId = req.body.DisasterzoneId;
 
+    // Create notification
     const params = [notifmessage, adminId, disasterzoneId];
     const notification = await model.createNotification(params);
     console.log("Notification created:", notification);
 
+    // Get all users in the disaster zone
+    const notifUsers = await model.getAllNotifsUsersByDisasterIdWithUsers(
+      disasterzoneId
+    );
+    console.log("Notification users fetched:", notifUsers);
+
+    // Emit socket event
     io.emit("disaster-alert", {
       message: notifmessage,
     });
 
-    res.json(notification);
+    // Send emails to all users in the disaster zone
+    if (notifUsers && notifUsers.length > 0) {
+      // Use a Set to prevent duplicate emails
+      const processedEmails = new Set();
+
+      notifUsers.forEach((user) => {
+        if (user.Email && !processedEmails.has(user.Email)) {
+          processedEmails.add(user.Email);
+
+          const mailOptions = {
+            from: process.env.OAUTH_EMAIL_USER,
+            to: user.Email,
+            subject: "Emergency Alert Notification (TEST)",
+            html: `
+              <h2>Emergency Alert</h2>
+              <p><strong>Message:</strong> ${notifmessage}</p>
+              <p>This is an automated emergency alert. Please take all necessary precautions.</p>
+              <br>
+              <p>Stay safe,</p>
+              <p>Emergency Response Team</p>
+            `,
+          };
+
+          // Send email
+          sendEmailFunc(mailOptions);
+          console.log(`Email notification sent to ${user.Email}`);
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      notification: notification,
+      message: "Notification created and broadcast",
+      usersNotified: notifUsers ? notifUsers.length : 0,
+    });
   } catch (err) {
-    res.status(500).json({ error: "Failed to create notification" });
+    res.status(500).json({
+      success: false,
+      error: "Failed to create notification",
+      message: err.message,
+    });
     console.error(err);
     next(err);
   }

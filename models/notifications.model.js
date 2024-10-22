@@ -66,7 +66,7 @@ async function getAllNotifsByNotifIdWithUsers(id) {
       n.disasterzone_id,
       nu.user_id
     FROM notifications n
-    JOIN notification_users nu ON n.id = nu.notification_id
+    JOIN notification_users nu ON n.disasterzone_id = nu.notif_zone_id
     WHERE n.id = ?
   `;
   try {
@@ -94,7 +94,7 @@ async function getAllNotifsByNotifIdWithUsersAndDisasterZone(id) {
         dz.Radius AS disasterzone_radius,
         nu.user_id
         FROM notifications n
-        JOIN notification_users nu ON n.id = nu.notification_id
+        JOIN notification_users nu ON n.disasterzone_id = nu.notif_zone_id
         JOIN disasterzones dz ON n.disasterzone_id = dz.id
         WHERE n.id = ?
     `;
@@ -139,7 +139,7 @@ async function getAllNotifsByDisasterIdWithUsersAndDisasterZone(id) {
         dz.Radius AS disasterzone_radius,
         nu.user_id
         FROM notifications n
-        JOIN notification_users nu ON n.id = nu.notification_id
+        JOIN notification_users nu ON n.disasterzone_id = nu.notif_zone_id
         JOIN disasterzones dz ON n.disasterzone_id = dz.id
         WHERE n.disasterzone_id = ?
     `;
@@ -148,6 +148,48 @@ async function getAllNotifsByDisasterIdWithUsersAndDisasterZone(id) {
     return notification;
   } catch (err) {
     console.error("Error fetching notification by disasterzone ID:", err);
+    throw err;
+  }
+}
+
+/**
+ * This function getAllNotifsUsersByDisasterId() fetches all notification users by disasterzone ID from the database
+ * @param {*} id The ID of the disasterzone to fetch notification users
+ * @returns {Promise<Array>} Returns a promise that resolves to an array of all notification users for the disasterzone with the given ID
+ */
+async function getAllNotifsUsersByDisasterId(id) {
+  const sql = "SELECT * FROM notification_users WHERE notif_zone_id = ?";
+  try {
+    const notificationUsers = await db.all(sql, [id]);
+    return notificationUsers;
+  } catch (err) {
+    console.error("Error fetching notification users by disasterzone ID:", err);
+    throw err;
+  }
+}
+
+/**
+ * This function getAllNotifsUsersByDisasterIdWithUsers() fetches all notification users by disasterzone ID from the database with user information
+ * @param {*} id The ID of the disasterzone to fetch notification users
+ * @returns {Promise<Array>} Returns a promise that resolves to an array of all notification users for the disasterzone with the given ID with user information
+ */
+async function getAllNotifsUsersByDisasterIdWithUsers(id) {
+  const sql = `
+    SELECT 
+      nu.notif_zone_id,
+      nu.user_id,
+      u.First_Name,
+      u.Last_Name,
+      u.Email
+    FROM notification_users nu
+    JOIN users u ON nu.user_id = u.id
+    WHERE nu.notif_zone_id = ?
+  `;
+  try {
+    const notificationUsers = await db.all(sql, [id]);
+    return notificationUsers;
+  } catch (err) {
+    console.error("Error fetching notification users by disasterzone ID:", err);
     throw err;
   }
 }
@@ -176,7 +218,7 @@ async function createNotification(params) {
  */
 async function createNotificationUser(params) {
   const sql =
-    "INSERT INTO notification_users (notification_id, user_id) VALUES (?, ?);";
+    "INSERT INTO notification_users (notif_zone_id, user_id) VALUES (?, ?);";
   try {
     const result = await db.run(sql, params);
     return result;
@@ -226,6 +268,8 @@ module.exports = {
   getAllNotifsByNotifIdWithUsersAndDisasterZone,
   getAllNotifsByDisasterId,
   getAllNotifsByDisasterIdWithUsersAndDisasterZone,
+  getAllNotifsUsersByDisasterId,
+  getAllNotifsUsersByDisasterIdWithUsers,
   createNotification,
   createNotificationUser,
   updateNotificationById,
