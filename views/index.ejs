@@ -15,16 +15,7 @@
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&loading=async&callback=initMap"
       defer
     ></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
-
-      socket.on("disaster-alert", (notification) => {
-        // Display the alert to the user
-        alert(`Disaster Alert: ${notification.message}`);
-        // Implement a more sophisticated UI notification here
-      });
-    </script>
+    <%- include('./partials/socket-script') %>
   </head>
 
   <body style="background-color: WHITE">
@@ -38,7 +29,9 @@
 
       <!-- Sidebar for flood stage monitoring -->
       <div class="sidebar">
-        <h2 class="monitor" align="center">Stream Flooding Monitors</h2>
+        <h2 class="monitor" style="align-content: center">
+          Stream Flooding Monitors
+        </h2>
         <ul id="flood-list"></ul>
       </div>
     </div>
