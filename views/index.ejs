@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Easy Rescue</title>
+    <title>Dashboard - ShelterSafe</title>
     <link rel="stylesheet" href="/styles/styles.css" />
     <!-- calling script.js to initialize the map -->
     <script src="/script/script.js" defer></script>
@@ -15,7 +15,16 @@
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&loading=async&callback=initMap"
       defer
     ></script>
-    <%- include('./partials/socket-script') %>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      socket.on("disaster-alert", (notification) => {
+        // Display the alert to the user
+        alert(`Disaster Alert: ${notification.message}`);
+        // Implement a more sophisticated UI notification here
+      });
+    </script>
   </head>
 
   <body style="background-color: WHITE">
@@ -29,9 +38,7 @@
 
       <!-- Sidebar for flood stage monitoring -->
       <div class="sidebar">
-        <h2 class="monitor" style="align-content: center">
-          Stream Flooding Monitors
-        </h2>
+        <h2 class="monitor" align="center">Stream Flooding Monitors</h2>
         <ul id="flood-list"></ul>
       </div>
     </div>
@@ -59,7 +66,7 @@
       </main>
       <div class="mobile_download">
         <a href="/"
-          ><img src="/site_art/mobile_coming_soon.png" width="75" height="auto"
+          ><img src="./mobile_coming_soon.png" width="75" height="auto"
         /></a>
       </div>
     </div>

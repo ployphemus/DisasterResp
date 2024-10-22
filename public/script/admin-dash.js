@@ -91,37 +91,24 @@ function initMap() {
           },
           body: JSON.stringify(circleData),
         })
-          .then(async (response) => {
-            const contentType = response.headers.get("content-type");
+          .then((response) => {
             if (!response.ok) {
-              if (contentType && contentType.includes("application/json")) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Server error");
-              } else {
-                throw new Error("Network response was not ok");
-              }
+              return response.json().then((error) => {
+                throw new Error(error.error);
+              });
             }
-
-            if (contentType && contentType.includes("application/json")) {
-              return response.json();
-            }
-            throw new Error("Response was not JSON");
+            return response.json();
           })
-
           .then((data) => {
-            if (!data.success) {
-              throw new Error(data.error || "Operation failed");
-            }
-
             console.log("Disaster zone created:", data);
+            alert("Disaster zone created successfully!");
+
+            // Extract the disasterzone_id from the response
             const disasterzoneId = data.insertId;
+            console.log("Extracted disasterzone_id:", disasterzoneId);
 
-            if (!disasterzoneId) {
-              throw new Error("No disaster zone ID returned");
-            }
-
-            // Create the circle on the map
-            const radiusInMeters = parseFloat(radius) * 1609.34; // Convert miles to meters
+            // Draw the circle on the map
+            const radiusInMeters = parseFloat(radius) * 1609.34; // Convert radius from miles to meters
             const circle = new google.maps.Circle({
               strokeColor: hexColor,
               strokeOpacity: 0.8,
@@ -144,14 +131,12 @@ function initMap() {
 
             circles.push(circle); // Store the circle for easier access
 
-            // Create shelters within the disaster zone
+            // Fetch and create shelters within the disaster zone
             fetchSchoolsAndCreateShelters(
               clickedCoordinates,
               radiusInMeters,
               disasterzoneId
             );
-
-            alert("Disaster zone created successfully!");
           })
           .catch((error) => {
             console.error("Error creating disaster zone:", error);
