@@ -1,0 +1,10 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  socket.on("disaster-alert", (notification) => {
+    // Display the alert to the user
+    alert(`Disaster Alert: ${notification.message}`);
+    // Implement a more sophisticated UI notification here
+  });
+</script>

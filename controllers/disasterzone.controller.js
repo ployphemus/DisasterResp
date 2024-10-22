@@ -107,33 +107,37 @@ async function getDisasterZoneById(req, res, next) {
 async function createDisasterZone(req, res, next) {
   console.log("createDisasterZone called");
   try {
-    let name = req.body.Name;
-    let latitude = req.body.Latitude;
-    let longitude = req.body.Longitude;
-    let radius = req.body.Radius;
-    let hexColor = req.body.HexColor;
+    const { Name, Latitude, Longitude, Radius, HexColor } = req.body;
 
-    const params = [name, latitude, longitude, radius, hexColor];
-    const disasterzone = await model.createDisasterZone(params);
-    console.log("Disasterzone created:", disasterzone);
-
-    /*
-    if (req.accepts("html")) {
-      const referer = req.get("referer");
-      if (referer && !referer.includes("/auth/register")) {
-        res.redirect(referer);
-      } else {
-        res.redirect("/auth/login");
-      }
-    } else {
-      res.json(user);
+    // Validate input
+    if (!Name || !Latitude || !Longitude || !Radius || !HexColor) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required fields",
+      });
     }
-    */
-    res.json(disasterzone);
+
+    const params = [Name, Latitude, Longitude, Radius, HexColor];
+    const result = await model.createDisasterZone(params);
+
+    if (!result || !result.id) {
+      throw new Error("Failed to create disaster zone");
+    }
+
+    const response = {
+      success: true,
+      insertId: result.id,
+      message: "Disaster zone created successfully",
+    };
+
+    console.log("Disasterzone created:", response);
+    res.status(200).json(response);
   } catch (err) {
-    res.status(500).json({ error: "Failed to create disasterzone" });
-    console.error(err);
-    next(err);
+    console.error("Error creating disaster zone:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message || "Failed to create disaster zone",
+    });
   }
 }
 

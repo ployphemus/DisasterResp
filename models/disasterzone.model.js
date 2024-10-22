@@ -42,12 +42,29 @@ async function getDisasterZoneById(id) {
  * @param {*} params The parameters of the disasterzone to create
  * @returns {Promise<Object>} Returns a promise that resolves to the disasterzone that was created
  */
-async function createDisasterZone(params) {
+/* async function createDisasterZone1(params) {
   const sql =
     "INSERT INTO disasterzones (Name, Latitude, Longitude, Radius, HexColor) VALUES (?, ?, ?, ?, ?);";
   try {
     const result = await db.run(sql, params);
     return result;
+  } catch (err) {
+    console.error("Error creating disasterzone:", err);
+    throw err;
+  }
+} */
+async function createDisasterZone(params) {
+  const sql =
+    "INSERT INTO disasterzones (Name, Latitude, Longitude, Radius, HexColor) VALUES (?, ?, ?, ?, ?);";
+  try {
+    const result = await db.run(sql, params);
+    if (!result) {
+      throw new Error("Database operation failed");
+    }
+    return {
+      id: result.lastID,
+      changes: result.changes,
+    };
   } catch (err) {
     console.error("Error creating disasterzone:", err);
     throw err;
