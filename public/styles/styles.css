@@ -60,7 +60,7 @@ body {
 }
 
 #map {
-    height: 492px;
+    height: 72vh;
     width: 80%;
     margin: 20px auto;
     border-radius: 8px;
