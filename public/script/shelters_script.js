@@ -7,6 +7,7 @@ let infoWindow;
 let smallCircle;
 
 function initMap() {
+
   console.log("Map is initializing...");
   const userShelterPage = document.getElementById("schools-table");
   const adminShelterPage = document.getElementById("shelter-table");
@@ -15,7 +16,8 @@ function initMap() {
 
   const center = { lat: 36.044659, lng: -79.766235 };
   map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 10,
+    zoom: 12,
+
     center: center,
   });
 
