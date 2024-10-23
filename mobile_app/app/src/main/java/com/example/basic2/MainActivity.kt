@@ -173,11 +173,6 @@ fun ShelterListScreen(
             getUserLocation(fusedLocationClient) { location ->
                 userLocation = location
 
-                // Fetch shelters and disaster zones
-//                val fetchedShelters = fetchShelters()
-//                val fetchedZones = fetchDisasterZones()
-//                fetchedShelters?.let { shelters = it }
-//                fetchedZones?.let { disasterZones = it }
 
                 isLoading = false
             }
@@ -315,7 +310,6 @@ fun ShelterListItem(shelter: Shelter) {
 fun MenuButton(navController: NavHostController) {
     var expanded by remember { mutableStateOf(false) }
 
-    // Icon button for the overflow menu
     IconButton(onClick = { expanded = true }) {
         Icon(
             imageVector = Icons.Default.MoreVert,
@@ -323,7 +317,6 @@ fun MenuButton(navController: NavHostController) {
         )
     }
 
-    // Dropdown menu that appears when the menu button is clicked
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = { expanded = false }
@@ -450,7 +443,7 @@ suspend fun performLogin(username: String, password: String): Boolean {
             }
         }
 
-        val serverIp = "192.168.56.1" // Replace with your server's IP
+        val serverIp = "192.168.56.1"
         val response: HttpResponse = client.submitForm(
             url = "http://$serverIp:8000/auth/login",
             formParameters = Parameters.build {
@@ -505,8 +498,8 @@ suspend fun fetchShelters(): List<Shelter>? {
         }
     }
     return try {
-        val serverIp = "http://yourserver.com" // Replace with your server's address
-        val shelters: List<Shelter> = client.get("$serverIp/shelters/all").body()
+        val serverIp = "192.168.56.1"
+        val shelters: List<Shelter> = client.get("http://$serverIp:8000/shelters/all").body()
         shelters
     } catch (e: Exception) {
         e.printStackTrace()
@@ -523,8 +516,8 @@ suspend fun fetchDisasterZones(): List<DisasterZone>? {
         }
     }
     return try {
-        val serverIp = "http://yourserver.com" // Replace with your server's address
-        val disasterZones: List<DisasterZone> = client.get("$serverIp/disasterzone/all").body()
+        val serverIp = "192.168.56.1"
+        val disasterZones: List<DisasterZone> = client.get("http://$serverIp:8000/disasterzone/all").body()
         disasterZones
     } catch (e: Exception) {
         e.printStackTrace()
