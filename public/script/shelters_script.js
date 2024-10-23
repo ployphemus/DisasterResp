@@ -128,10 +128,26 @@ function searchNearbySchools(location) {
     if (status === google.maps.places.PlacesServiceStatus.OK) {
       clearMarkers();
       clearTable();
-      for (let i = 0; i < results.length; i++) {
-        createMarker(results[i]);
-        addSchoolToTable(results[i], location);
-      }
+
+      // Collect all school data with distance
+      const schoolsWithDistance = results.map((school) => {
+        const distance = calculateDistance(
+            location.lat,
+            location.lng,
+            school.geometry.location.lat(),
+            school.geometry.location.lng()
+        );
+        return { school, distance };
+      });
+
+      // Sort by distance
+      schoolsWithDistance.sort((a, b) => a.distance - b.distance);
+
+      // Add sorted schools to the table
+      schoolsWithDistance.forEach((entry) => {
+        createMarker(entry.school);
+        addSchoolToTable(entry.school, location, entry.distance);
+      });
     } else {
       console.warn("Places search failed:", status);
     }
@@ -191,7 +207,7 @@ async function saveShelter(name, latitude, longitude, capacity) {
   }
 }
 
-function addSchoolToTable(school, userLocation) {
+function addSchoolToTable(school, userLocation, distance) {
   const userShelterPage = document.getElementById("schools-table");
   if (!userShelterPage) return;
 
@@ -212,24 +228,19 @@ function addSchoolToTable(school, userLocation) {
   const navigateButton = document.createElement("a");
   navigateButton.textContent = "Directions";
   navigateButton.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-    school.geometry.location.lat()
+      school.geometry.location.lat()
   )},${encodeURIComponent(school.geometry.location.lng())}`;
   navigateButton.target = "_blank";
   actionCell.appendChild(navigateButton);
   row.appendChild(actionCell);
 
-  const distance = calculateDistance(
-    userLocation.lat,
-    userLocation.lng,
-    school.geometry.location.lat(),
-    school.geometry.location.lng()
-  );
   const distanceCell = document.createElement("td");
   distanceCell.textContent = `${distance} miles`;
   row.appendChild(distanceCell);
 
   tableBody.appendChild(row);
 }
+
 
 function clearMarkers() {
   for (let i = 0; i < markers.length; i++) {
