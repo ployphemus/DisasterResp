@@ -9,7 +9,7 @@ function initMap() {
   console.log('Map is initializing...');
   const center = { lat: 36.044659, lng: -79.766235 }; // Center point Greensboro, NC
   map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 10,
+    zoom: 12,
     center: center,
   });
 

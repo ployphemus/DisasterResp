@@ -60,11 +60,11 @@ body {
 }
 
 #map {
-    flex: 1;      /* Takes remaining space */
-    width: 75%;
-    height: 75vh; /* Full height of the container */
-    margin: 0;
-    padding: 0;
+    height: 700px;
+    width: 80%;
+    margin: 20px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Sidebar for flood stage monitoring */
@@ -75,6 +75,9 @@ body {
     border-left: 1px solid #ccc;
     height: 72vh; /* Full height of the container */
     overflow-y: auto; /* Scrollable if content exceeds height */
+    margin: 20px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .monitor {
