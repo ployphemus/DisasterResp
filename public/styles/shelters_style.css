@@ -18,20 +18,21 @@ body {
     margin-left: auto;
 }
 
-/*.nav-right {
-    font-family: sans-serif;
+.container {
     display: flex;
-    margin-left: auto;
-    padding-right: 20px; /* Add padding to the right of the nav-right container
-}*/
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
 
 .shelter-info {
-    background-color: #FFD3D2;
-    border: 1px solid transparent; /* Transparent border for a clean look */
-    border-radius: 8px; /* Soft edges */
+    text-align: center;
+    width: 100%;
     font-size: 30px;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding: 20px 0;
 }
 
 .row {
@@ -107,7 +108,14 @@ button:hover {
     background-color: #ddd;
 }
 
+h2 {
+    text-align: center;
+    width: 100%;
+    margin: 20px 0;
+}
+
 .copyright {
+    text-align: center;
     margin-left: auto;
     padding-left: 100px;
     padding-top: 100px;
@@ -131,6 +139,14 @@ th {
     background-color: #f2f2f2;
 }
 
+#schools-table,
+table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 tbody tr:nth-child(odd) {
     background-color: #f9f9f9;
 }
@@ -141,8 +157,9 @@ tbody tr:nth-child(odd) {
 
 /* Set the size of the map */
 #map {
-    height: 50vh; /* 50% height */
-    width: 50%; /* 50% width */
-    z-index: 1; /* Lower than the dropdown */
-    position: relative; /* Add this to ensure z-index works */
+    height: 700px;
+    width: 100%;
+    margin: 20px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

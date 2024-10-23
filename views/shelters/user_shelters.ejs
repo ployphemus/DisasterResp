@@ -17,7 +17,7 @@
   <body style="background-color: WHITE" onload="initMap()">
     <!-- Nav-bar.EJS-->
     <%- include('../partials/nav-bar') %>
-
+  <div class="container">
     <!-- Content -->
     <div class="row">
       <div class="left-side">
@@ -26,16 +26,17 @@
     </div>
 
     <!-- The div element where the map will be displayed -->
-    <div id="map" style="height: 700px; width: 50%"></div>
+    <div id="map"></div>
 
     <!-- Table to display nearby schools -->
     <h2>Nearby Facility Details</h2>
-    <table id="schools-table" style="height: 700px; width: 50%">
+    <table id="schools-table">
       <thead>
         <tr>
           <th>School Name</th>
           <th>Address</th>
           <th>Action</th>
+          <th>Distance</th>
         </tr>
       </thead>
       <tbody>
@@ -76,5 +77,6 @@
     <footer class="copyright" style="color: black">
       <p>© 2024, ShelterSafe LLC</p>
     </footer>
+  </div>
   </body>
 </html>
