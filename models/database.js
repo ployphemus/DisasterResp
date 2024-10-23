@@ -284,10 +284,10 @@ database.get("/createnotifications", (req, res) => {
     )`;
 
   let createNotificationUsersTableSql = `CREATE TABLE IF NOT EXISTS notification_users (
-        notification_id INTEGER,
+        notif_zone_id INTEGER,
         user_id INTEGER,
-        PRIMARY KEY (notification_id, user_id),
-        FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE CASCADE,
+        PRIMARY KEY (notif_zone_id, user_id),
+        FOREIGN KEY (notif_zone_id) REFERENCES disasterzones(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`;
 
