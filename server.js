@@ -20,7 +20,6 @@ const { router: databaseRouter } = require("./models/database");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const session = require("express-session");
-
 // const upload = multer;
 
 const app = express();

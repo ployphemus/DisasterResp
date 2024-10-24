@@ -115,11 +115,11 @@ function displayDataOnMap(data) {
 
         // Determine color based on gage height
         let colorClass;
-        if (gageHeight < 5) {
+        if (gageHeight < 2) {
             colorClass = 'green';
-        } else if (gageHeight < 10) {
+        } else if (gageHeight < 4) {
             colorClass = 'yellow';
-        } else if (gageHeight < 15) {
+        } else if (gageHeight < 8) {
             colorClass = 'orange';
         } else {
             colorClass = 'red';
@@ -196,7 +196,7 @@ async function fetchWildfireCsvData(apiKey, date) {
     }
 }
 
-// Parse wildfire CSV data into usable format
+// Parse wildfire CSV data
 function parseWildfireCsvData(csvData) {
     const lines = csvData.split('\n');
     if (lines.length === 0) return [];
