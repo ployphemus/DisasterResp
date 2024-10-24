@@ -184,12 +184,13 @@ function initMap() {
   });
 
   // Fetch and display initial data
-  updateUSGSStreamData(center.lat, center.lng);
+  // No longer used since this used to be a part of the admin-dash
+  //updateUSGSStreamData(center.lat, center.lng);
 
   // Add event listener for when the map is moved or zoomed
   google.maps.event.addListener(map, "idle", () => {
     const center = map.getCenter();
-    updateUSGSStreamData(center.lat(), center.lng());
+    //updateUSGSStreamData(center.lat(), center.lng());
   });
 
   // Fetch and draw all disaster zones

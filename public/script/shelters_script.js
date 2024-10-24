@@ -7,7 +7,6 @@ let infoWindow;
 let smallCircle;
 
 function initMap() {
-
   console.log("Map is initializing...");
   const userShelterPage = document.getElementById("schools-table");
   const adminShelterPage = document.getElementById("shelter-table");
@@ -132,10 +131,10 @@ function searchNearbySchools(location) {
       // Collect all school data with distance
       const schoolsWithDistance = results.map((school) => {
         const distance = calculateDistance(
-            location.lat,
-            location.lng,
-            school.geometry.location.lat(),
-            school.geometry.location.lng()
+          location.lat,
+          location.lng,
+          school.geometry.location.lat(),
+          school.geometry.location.lng()
         );
         return { school, distance };
       });
@@ -228,7 +227,7 @@ function addSchoolToTable(school, userLocation, distance) {
   const navigateButton = document.createElement("a");
   navigateButton.textContent = "Directions";
   navigateButton.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-      school.geometry.location.lat()
+    school.geometry.location.lat()
   )},${encodeURIComponent(school.geometry.location.lng())}`;
   navigateButton.target = "_blank";
   actionCell.appendChild(navigateButton);
@@ -240,7 +239,6 @@ function addSchoolToTable(school, userLocation, distance) {
 
   tableBody.appendChild(row);
 }
-
 
 function clearMarkers() {
   for (let i = 0; i < markers.length; i++) {
