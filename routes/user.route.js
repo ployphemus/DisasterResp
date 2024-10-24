@@ -21,6 +21,11 @@ router.get(
   authMiddleware.isAdmin,
   userController.getAdminShelters
 );
+router.get(
+  "/admin/alerts",
+  authMiddleware.isAdmin,
+  userController.getAdminAlertPage
+);
 router.get("/resources", userController.getUserResources);
 router.get("/user_account", userController.getUserAccountPage);
 router.get("/:id", userController.getUserById);

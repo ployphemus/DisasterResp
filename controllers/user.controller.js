@@ -523,6 +523,34 @@ async function getUserAccountPage(req, res, next) {
   }
 }
 
+async function getAdminAlertPage(req, res, next) {
+  console.log("getAdminAlertPage called");
+  try {
+    let loggedIn = req.user ? true : false;
+    let user_type = null;
+    let user_id = null;
+    if (req.user) {
+      user_type = req.user.userType;
+      user_id = req.user.id;
+    }
+    console.log("Logged in:", loggedIn);
+    console.log("User type:", user_type);
+    console.log("User ID:", user_id);
+
+    res.render("admin/admin-alert", {
+      loggedIn: loggedIn,
+      user_type: user_type,
+      user_id: user_id,
+      title: "Admin Alert",
+      message: req.flash("error")[0],
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to render admin alert" });
+    console.error(err);
+    next(err);
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -540,4 +568,5 @@ module.exports = {
   getAdminShelters,
   getUserResources,
   getUserAccountPage,
+  getAdminAlertPage,
 };
