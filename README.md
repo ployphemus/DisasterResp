@@ -1,5 +1,8 @@
 ﻿# DisasterResponse
 ## Instructions
+
+!! Please download and install node.js from this link if you don't already have it set up: https://nodejs.org/en !!
+
 1. Clone the repo onto your machine
 
 2. Open the cloned repo in VS Code
