@@ -1,0 +1,96 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: BLACK;
+}
+
+.nav {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  position: relative; /* Ensure this has a stacking context */
+  z-index: 10; /* Higher than the map */
+  margin-bottom: 10px;
+}
+
+.nav-right {
+  font-family: sans-serif;
+  display: flex;
+  margin-left: auto;
+}
+
+.logo {
+  padding-top: 10px;
+  padding-left: 30px;
+  padding-bottom: 5px;
+}
+
+/* Navbar base color */
+.navbar ul {
+  list-style-type: none;
+  background-color: #d30000;
+  padding: 0px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+/* Navbar text color */
+.navbar a {
+  color: white;
+  text-decoration: none;
+  padding: 15px;
+  display: block;
+  text-align: right;
+}
+
+/* Navbar hover color */
+.navbar a:hover {
+  background-color: #7f0338;
+}
+
+/* Navbar text right */
+.navbar li {
+  float: right;
+}
+
+.logo {
+  padding-left: 20px;
+  padding-bottom: 5px;
+}
+
+.main {
+  flex: 70%;
+  padding-left: 20px;
+  padding-top: 50px;
+}
+
+a {
+  color: BLACK;
+  text-decoration: none;
+}
+
+a:hover {
+  color: gray;
+  cursor: pointer;
+}
+
+button {
+  border: none;
+  border-radius: 5px;
+  padding: 15px 30px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #ddd;
+}
+
+#title {
+  text-align: center;
+}
+
+.copyright {
+  margin-left: auto;
+  padding-left: 100px;
+  padding-top: 100px;
+}

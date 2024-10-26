@@ -4,14 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Send Alert - ShelterSafe</title>
-    <link rel="stylesheet" href="/styles/styles.css" />
+    <link rel="stylesheet" href="/styles/alert_style.css" />
+    <script src="/script/alert_script.js" defer></script>
   </head>
 
   <body style="background-color: WHITE">
     <!-- Nav-bar.EJS-->
     <%- include('../partials/nav-bar') %>
 
-    <div class="container"></div>
+    <div class="container">
+      <h1 id="title">Alert Management</h1>
+
+      <div class="alert-form">
+        <h2>Create New Alert</h2>
+        <input type="text" id="alertTitle" placeholder="Alert Title" required>
+        <textarea id="alertMessage" placeholder="Alert Message" rows="4" required></textarea>
+        <button id="sendAlert">Send Alert</button>
+      </div>
+
+      <h2>Current Alerts</h2>
+      <div id="alertsList" class="alerts-list">
+        <!-- New alerts will be added here with current date and time -->
+      </div>
+    </div>
+
 
     <footer class="copyright" style="color: black">
       <p>© 2024, ShelterSafe LLC</p>
