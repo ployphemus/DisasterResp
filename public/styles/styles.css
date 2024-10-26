@@ -119,7 +119,6 @@ body {
     background-color: #7f0338;
 }
 
-/* Hidden content for non-active tab */
 .tab-content {
     display: none;
 }
@@ -159,11 +158,6 @@ body {
     padding-left: 20px;
     padding-bottom: 5px;
 }
-
-/*.bg_img {
-    
-}
-*/
 
 .main {
     flex: 70%;

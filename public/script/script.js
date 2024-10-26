@@ -230,8 +230,8 @@ function parseWildfireCsvData(csvData) {
 
 // Function to display wildfire data on the map
 function displayWildfireDataOnMap(wildfireData) {
-    const wildfireList = document.getElementById('wildfire-list');
-    wildfireList.innerHTML = ''; // Clear the existing list
+    // const wildfireList = document.getElementById('wildfire-list');
+    // wildfireList.innerHTML = ''; // Clear the existing list
 
     wildfireData.forEach(item => {
         if (item.confidence >= 0) {  // Include fires with 0% confidence
@@ -258,17 +258,17 @@ function displayWildfireDataOnMap(wildfireData) {
                 infoWindow.open(map, marker);
             });
 
-            // Add wildfire data to the sidebar list
-            const listItem = document.createElement('li');
-            listItem.innerHTML = `
-                <strong>Wildfire Detected</strong><br>
-                Date: ${item.acqDate} ${item.acqTime}<br>
-                Latitude: ${item.latitude.toFixed(5)}<br>
-                Longitude: ${item.longitude.toFixed(5)}<br>
-                Status: ${item.status}<br>
-                Confidence: ${item.confidence}%
-            `;
-            wildfireList.appendChild(listItem);
+            // // Add wildfire data to the sidebar list
+            // const listItem = document.createElement('li');
+            // listItem.innerHTML = `
+            //     <strong>Wildfire Detected</strong><br>
+            //     Date: ${item.acqDate} ${item.acqTime}<br>
+            //     Latitude: ${item.latitude.toFixed(5)}<br>
+            //     Longitude: ${item.longitude.toFixed(5)}<br>
+            //     Status: ${item.status}<br>
+            //     Confidence: ${item.confidence}%
+            // `;
+            // wildfireList.appendChild(listItem);
         }
     });
 }
