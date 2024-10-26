@@ -2,7 +2,7 @@ const alertsList = document.getElementById("alertsList");
 let alertIdCounter = 0;
 
 // Function to create a new alert and record current date & time
-function createAlert(title, message) {
+function createAlert(title, zone, message) {
     alertIdCounter++;
     const alertItem = document.createElement("div");
     alertItem.className = "alert-item";
@@ -16,10 +16,12 @@ function createAlert(title, message) {
             <h3>${title}</h3>
             <span class="timestamp">${timestamp}</span> <!-- Timestamp -->
         </div>
+        <div class="alert-zone">${zone}</div>
         <p>${message}</p>
         
         <!-- Editable fields -->
         <input type="text" class="edit-title" value="${title}">
+        <input type="text" class="edit-zone" value="${zone}">
         <textarea class="edit-message">${message}</textarea>
         
         <div class="alert-buttons">
@@ -35,14 +37,16 @@ function createAlert(title, message) {
 // function for "Send Alert" button
 document.getElementById("sendAlert").addEventListener("click", () => {
     const alertTitle = document.getElementById("alertTitle").value;
+    const disasterZone = document.getElementById("disasterZone").value;
     const alertMessage = document.getElementById("alertMessage").value;
 
-    if (alertTitle && alertMessage) {
-        createAlert(alertTitle, alertMessage);
+    if (alertTitle && disasterZone && alertMessage) {
+        createAlert(alertTitle, disasterZone, alertMessage);
         document.getElementById("alertTitle").value = "";
+        document.getElementById("disasterZone").value = "";
         document.getElementById("alertMessage").value = "";
     } else {
-        alert("Please fill in both the title and message.");
+        alert("Please fill in the blanks.");
     }
 });
 

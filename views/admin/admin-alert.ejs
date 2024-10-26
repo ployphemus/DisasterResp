@@ -4,15 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Send Alert - ShelterSafe</title>
-    <link rel="stylesheet" href="/styles/alert_style.css" />
-    <script src="/script/alert_script.js" defer></script>
     <link
             rel="stylesheet"
             href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
     />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-  </head>
+    <link rel="stylesheet" href="/styles/alert_style.css" />
+    <script src="/script/alert_script.js" defer></script>
+
+    </head>
 
   <body style="background-color: WHITE">
     <!-- Nav-bar.EJS-->
@@ -23,8 +22,9 @@
 
       <div class="alert-form">
         <h2>Create New Alert</h2>
-        <input type="text" id="alertTitle" placeholder="Alert Title" required>
-        <textarea id="alertMessage" placeholder="Alert Message" rows="4" required></textarea>
+        <input type="text" id="alertTitle" placeholder="Title" required>
+        <input type="text" id="disasterZone" placeholder="Disaster Zone" required>
+        <textarea id="alertMessage" placeholder="Message" rows="4" required></textarea>
         <button id="sendAlert">Send Alert</button>
       </div>
 
