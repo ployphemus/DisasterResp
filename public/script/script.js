@@ -62,10 +62,6 @@ function initMap() {
     document.getElementById('toggle-flood').addEventListener('click', function() {
         showFloodData();
     });
-
-    document.getElementById('toggle-wildfire').addEventListener('click', function() {
-        showWildfireData();
-    });
 }
 
 // Function to get the current date in YYYY-MM-DD format
@@ -113,7 +109,7 @@ function displayDataOnMap(data) {
         const latitude = series.sourceInfo.geoLocation.geogLocation.latitude;
         const longitude = series.sourceInfo.geoLocation.geogLocation.longitude;
 
-        // Determine color based on gage height
+        // Determine color based on water gage height
         let colorClass;
         if (gageHeight < 2) {
             colorClass = 'green';
@@ -168,10 +164,10 @@ function displayDataOnMap(data) {
 
 // Fetch wildfire CSV data from NASA API
 async function fetchWildfireCsvData(apiKey, date) {
-    const layer = "VIIRS_SNPP_NRT"; // Specify the layer
-    const areaType = "world"; // Specify the area type
-    const area = "1"; // Specify the area (1 for global)
-    const buffer = "0"; // Buffer
+    const layer = "VIIRS_SNPP_NRT";
+    const areaType = "world";
+    const area = "1"; // global area
+    const buffer = "0";
 
     const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${apiKey}/${layer}/${areaType}/${area}/${buffer}/${date}`;
 
@@ -196,7 +192,7 @@ async function fetchWildfireCsvData(apiKey, date) {
     }
 }
 
-// Parse wildfire CSV data
+// function to parse wildfire CSV data
 function parseWildfireCsvData(csvData) {
     const lines = csvData.split('\n');
     if (lines.length === 0) return [];
@@ -218,7 +214,7 @@ function parseWildfireCsvData(csvData) {
             longitude: parseFloat(fields[headerIndices["longitude"]]) || 0.0,
             acqDate: fields[headerIndices["acq_date"]],
             acqTime: fields[headerIndices["acq_time"]],
-            confidence: parseFloat(fields[headerIndices["confidence"]]) || 0, // Ensure it's a number
+            confidence: parseFloat(fields[headerIndices["confidence"]]) || 0,
             status: parseFloat(fields[headerIndices["confidence"]]) > 70 ? 'Active' : 'Extinguished' // Wildfire status
         };
 
@@ -230,11 +226,9 @@ function parseWildfireCsvData(csvData) {
 
 // Function to display wildfire data on the map
 function displayWildfireDataOnMap(wildfireData) {
-    // const wildfireList = document.getElementById('wildfire-list');
-    // wildfireList.innerHTML = ''; // Clear the existing list
 
     wildfireData.forEach(item => {
-        if (item.confidence >= 0) {  // Include fires with 0% confidence
+        if (item.confidence >= 0) {  // Do not show extinguished wildfire
             const marker = new google.maps.Marker({
                 position: { lat: item.latitude, lng: item.longitude },
                 map: map,
@@ -258,17 +252,6 @@ function displayWildfireDataOnMap(wildfireData) {
                 infoWindow.open(map, marker);
             });
 
-            // // Add wildfire data to the sidebar list
-            // const listItem = document.createElement('li');
-            // listItem.innerHTML = `
-            //     <strong>Wildfire Detected</strong><br>
-            //     Date: ${item.acqDate} ${item.acqTime}<br>
-            //     Latitude: ${item.latitude.toFixed(5)}<br>
-            //     Longitude: ${item.longitude.toFixed(5)}<br>
-            //     Status: ${item.status}<br>
-            //     Confidence: ${item.confidence}%
-            // `;
-            // wildfireList.appendChild(listItem);
         }
     });
 }

@@ -207,6 +207,12 @@ button:hover {
     padding-top: 100px;
 }
 
-.fema {
-    color: blue;
+.row {
+    text-align: center;
+}
+
+.links {
+    justify-content: center;
+    display: flex;
+    padding-top: 20px;
 }
