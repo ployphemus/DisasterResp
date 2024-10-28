@@ -10,6 +10,14 @@ let markers = []; // Array to hold the marker objects for easier access
 function initMap() {
   console.log("Map is initializing...");
   const center = { lat: 36.044659, lng: -79.766235 }; // Initial center of the map
+
+  shelterIcon = {
+    url: "/shelter.png", // Path is relative to your public directory
+    scaledSize: new google.maps.Size(32, 32), // Adjust size as needed
+    origin: new google.maps.Point(0, 0),
+    anchor: new google.maps.Point(16, 32), // Center bottom of the image
+  };
+
   map = new google.maps.Map(document.getElementById("map"), {
     zoom: 10,
     center: center,
@@ -289,6 +297,7 @@ function fetchShelters() {
           position: { lat: shelter.Latitude, lng: shelter.Longitude },
           map: map,
           title: shelter.Name,
+          icon: shelterIcon,
         });
 
         // Add an event listener to show an InfoWindow with the shelter details
@@ -302,7 +311,7 @@ function fetchShelters() {
           infoWindow.open(map);
         });
 
-        markers.push(marker); // Store the marker for easier access
+        markers.push(marker);
       });
     })
     .catch((error) => console.error("Error fetching shelters:", error));
@@ -315,7 +324,7 @@ function fetchShelters() {
  * @param {*} disasterzoneId The ID of the disaster zone to associate the shelters with
  */
 function fetchSchoolsAndCreateShelters(center, radiusInMeters, disasterzoneId) {
-  console.log("Creating shelters with disasterzone_id:", disasterzoneId); // Log the disasterzone_id
+  console.log("Creating shelters with disasterzone_id:", disasterzoneId);
   const service = new google.maps.places.PlacesService(map);
   const request = {
     location: center,
@@ -333,10 +342,10 @@ function fetchSchoolsAndCreateShelters(center, radiusInMeters, disasterzoneId) {
           Maximum_Capacity: 300,
           Current_Capacity: 0,
           disasterzone_id: disasterzoneId,
-          Shelter_address: place.vicinity, // Add the address of the school
+          Shelter_address: place.vicinity,
         };
 
-        console.log("Creating shelter:", shelterData); // Log the shelter data
+        console.log("Creating shelter:", shelterData);
 
         fetch("http://localhost:8000/shelters/createShelter", {
           method: "POST",
@@ -355,7 +364,7 @@ function fetchSchoolsAndCreateShelters(center, radiusInMeters, disasterzoneId) {
           })
           .then((data) => {
             console.log("Shelter created:", data);
-            // Draw the shelter on the map
+            // Draw the shelter on the map with custom icon
             const marker = new google.maps.Marker({
               position: {
                 lat: shelterData.Latitude,
@@ -363,6 +372,7 @@ function fetchSchoolsAndCreateShelters(center, radiusInMeters, disasterzoneId) {
               },
               map: map,
               title: shelterData.Name,
+              icon: shelterIcon,
             });
 
             // Add an event listener to show an InfoWindow with the shelter details
@@ -377,7 +387,7 @@ function fetchSchoolsAndCreateShelters(center, radiusInMeters, disasterzoneId) {
               infoWindow.open(map);
             });
 
-            markers.push(marker); // Store the marker for easier access
+            markers.push(marker);
           })
           .catch((error) => {
             console.error("Error creating shelter:", error);

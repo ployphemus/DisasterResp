@@ -1,10 +1,12 @@
 let map;
 let service;
-let markers = [];
+let markers = []; // For schools
+let shelterMarkers = []; // For shelters specifically
 let userMarker;
 let circles = [];
 let infoWindow;
 let smallCircle;
+let shelterIcon; // For the custom shelter icon
 
 function initMap() {
   console.log("Map is initializing...");
@@ -12,6 +14,13 @@ function initMap() {
   const adminShelterPage = document.getElementById("shelter-table");
   console.log("The user shelter page is:", userShelterPage);
   console.log("The admin shelter page is:", adminShelterPage);
+
+  shelterIcon = {
+    url: "/shelter.png",
+    scaledSize: new google.maps.Size(32, 32),
+    origin: new google.maps.Point(0, 0),
+    anchor: new google.maps.Point(16, 32),
+  };
 
   const center = { lat: 36.044659, lng: -79.766235 };
   map = new google.maps.Map(document.getElementById("map"), {
@@ -58,6 +67,7 @@ function initMap() {
         }
 
         fetchDisasterZones();
+        fetchShelters();
 
         if (adminShelterPage) {
           fetchShelters();
@@ -247,6 +257,14 @@ function clearMarkers() {
   markers = [];
 }
 
+// Add this function if you need to clear shelter markers separately
+function clearShelterMarkers() {
+  for (let i = 0; i < shelterMarkers.length; i++) {
+    shelterMarkers[i].setMap(null);
+  }
+  shelterMarkers = [];
+}
+
 function clearTable() {
   const userShelterPage = document.getElementById("schools-table");
   if (!userShelterPage) return;
@@ -314,9 +332,7 @@ function fetchShelters() {
           position: { lat: shelter.Latitude, lng: shelter.Longitude },
           map: map,
           title: shelter.Name,
-          icon: {
-            url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-          },
+          icon: shelterIcon,
         });
 
         google.maps.event.addListener(marker, "click", () => {
@@ -331,7 +347,7 @@ function fetchShelters() {
           infoWindow.open(map);
         });
 
-        markers.push(marker);
+        shelterMarkers.push(marker); // Use shelterMarkers instead of markers
       });
     })
     .catch((error) => console.error("Error fetching shelters:", error));

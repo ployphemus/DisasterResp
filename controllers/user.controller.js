@@ -13,6 +13,8 @@ app.use(express.json());
 
 const model = require("../models/user.model");
 const shelterModel = require("../models/shelter.model");
+const notifsModel = require("../models/notifications.model");
+const disasterzoneModel = require("../models/disasterzone.model");
 const crypto = require("crypto");
 const nodemailer = require("../middleware/nodemailer");
 
@@ -152,12 +154,17 @@ async function initiatePasswordReset(req, res, next) {
     let email = req.body.Email;
     const user = await model.getUserByEmail(email);
     console.log("User fetched from getUserByEmail:", user);
+
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      if (req.accepts("html")) {
+        req.flash("error", "No account found with that email address");
+        return res.redirect("/auth/forgot-password");
+      }
+      return res.status(404).json({ error: "User not found" });
     }
 
     const token = crypto.randomBytes(20).toString("hex");
-    const expires = new Date(Date.now() + 3600000);
+    const expires = new Date(Date.now() + 3600000); // 1 hour from now
 
     const params = [token, expires, user.id];
     await model.saveResetToken(params);
@@ -173,14 +180,23 @@ async function initiatePasswordReset(req, res, next) {
     };
     await nodemailer.sendEmailFunc(mailOptions);
 
+    console.log("Password reset email sent to:", user.Email);
+
     if (req.accepts("html")) {
-      res.redirect("/auth/login");
-    } else {
-      res.status(200).json({ message: "Password reset email sent" });
+      req.flash(
+        "success",
+        "Password reset email sent. Please check your inbox."
+      );
+      return res.redirect("/auth/login");
     }
+    return res.status(200).json({ message: "Password reset email sent" });
   } catch (err) {
-    res.status(500).json({ error: "Failed to initiate password reset" });
-    console.error(err);
+    console.error("Failed to initiate password reset:", err);
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to process password reset request");
+      return res.redirect("/auth/forgot-password");
+    }
+    return res.status(500).json({ error: "Failed to initiate password reset" });
     next(err);
   }
 }
@@ -195,25 +211,56 @@ async function resetPassword(req, res, next) {
   console.log("resetPassword called");
 
   try {
-    const token = req.body.token;
+    const token = req.body.token || req.params.token; // Handle both POST and route parameter
     const password = req.body.Password;
-    const user = await model.getUserByResetToken(token);
-    console.log("User fetched from getUserByResetToken:", user);
-    if (!user) {
-      res.status(404).json({ error: "User not found" });
+
+    console.log("Reset attempt with token:", token);
+
+    if (!token || !password) {
+      console.log("Missing token or password");
+      if (req.accepts("html")) {
+        req.flash("error", "Invalid password reset request");
+        return res.redirect("/auth/login");
+      }
+      return res.status(400).json({ error: "Token and password are required" });
     }
 
+    const user = await model.getUserByResetToken(token);
+    console.log("User fetched from getUserByResetToken:", user);
+
+    if (!user) {
+      console.log("No user found with valid reset token");
+      if (req.accepts("html")) {
+        req.flash("error", "Invalid or expired password reset token");
+        return res.redirect("/auth/login");
+      }
+      return res.status(404).json({ error: "Invalid or expired reset token" });
+    }
+
+    // Add logging for password update attempt
+    console.log("Attempting to update password for user:", user.id);
+
+    // Update password and clear reset token
     await model.updateUserPasswordById([password, user.id]);
     await model.clearResetToken(user.id);
 
+    console.log("Password successfully reset for user:", user.id);
+
     if (req.accepts("html")) {
-      res.redirect("/auth/login");
-    } else {
-      res.status(200).json({ message: "Password reset successful" });
+      req.flash(
+        "success",
+        "Password successfully reset. Please login with your new password."
+      );
+      return res.redirect("/auth/login");
     }
+    return res.status(200).json({ message: "Password reset successful" });
   } catch (err) {
-    res.status(500).json({ error: "Failed to reset password" });
-    console.error(err);
+    console.error("Failed to reset password:", err);
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to reset password");
+      return res.redirect("/auth/login");
+    }
+    return res.status(500).json({ error: "Failed to reset password" });
     next(err);
   }
 }
@@ -290,6 +337,12 @@ async function updateUserLocationById(req, res, next) {
   }
 }
 
+/**
+ * This function updateUserPasswordById() is used to update a user's password by their ID in the database by calling the updateUserPasswordById() function from the user.model.js file
+ * @param {*} req The request object containing the parameters of the user to update from req.body & req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 async function updateUserPasswordById(req, res, next) {
   console.log("updateUserPasswordById called");
   try {
@@ -302,6 +355,29 @@ async function updateUserPasswordById(req, res, next) {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: "Failed to update user password" });
+    console.error(err);
+    next(err);
+  }
+}
+
+/**
+ * This function updateUserEmailById() is used to update a user's email by their ID in the database by calling the updateUserEmailById() function from the user.model.js file
+ * @param {*} req The request object containing the parameters of the user to update from req.body & req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function updateUserEmailById(req, res, next) {
+  console.log("updateUserEmailById called");
+  try {
+    let userId = req.params.id;
+    let email = req.body.Email;
+
+    const params = [email, userId];
+    const user = await model.updateUserEmailById(params);
+    console.log("User email updated:", user);
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update user email" });
     console.error(err);
     next(err);
   }
@@ -495,6 +571,12 @@ async function getUserResources(req, res, next) {
   }
 }
 
+/**
+ * This function getUserAccountPage() is used to render the user account page
+ * @param {*} req The request
+ * @param {*} res The response
+ * @param {*} next The next middleware function
+ */
 async function getUserAccountPage(req, res, next) {
   console.log("getUserAccountPage called");
   try {
@@ -523,7 +605,15 @@ async function getUserAccountPage(req, res, next) {
   }
 }
 
+/**
+ * This function getAdminAlertPage() is used to render the admin alert page
+ * @param {*} req The request
+ * @param {*} res The response
+ * @param {*} next The next middleware function
+ */
 async function getAdminAlertPage(req, res, next) {
+  const notifs = await notifsModel.getAllNotifsWithDisasterZone();
+  const disasterzones = await disasterzoneModel.getAll();
   console.log("getAdminAlertPage called");
   try {
     let loggedIn = req.user ? true : false;
@@ -538,6 +628,8 @@ async function getAdminAlertPage(req, res, next) {
     console.log("User ID:", user_id);
 
     res.render("admin/admin-alert", {
+      notifs: notifs,
+      disasterzones: disasterzones,
       loggedIn: loggedIn,
       user_type: user_type,
       user_id: user_id,
@@ -569,4 +661,5 @@ module.exports = {
   getUserResources,
   getUserAccountPage,
   getAdminAlertPage,
+  updateUserEmailById,
 };

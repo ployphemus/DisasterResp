@@ -1,4 +1,4 @@
-<script src="/socket.io/socket.io.js"></script>
+<!-- <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
 
@@ -6,5 +6,72 @@
     // Display the alert to the user
     alert(`Disaster Alert: ${notification.message}`);
     // Implement a more sophisticated UI notification here
+  });
+</script> -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  // Function to update user location
+  async function updateUserLocation(latitude, longitude) {
+    try {
+      const userId = document.querySelector('meta[name="user-id"]').content;
+      const response = await fetch(`/users/updateLocation/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Latitude: latitude,
+          Longitude: longitude,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update location");
+      }
+      console.log("Location updated successfully");
+    } catch (error) {
+      console.error("Error updating location:", error);
+    }
+  }
+
+  // Request and handle location permission
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // Success callback
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        updateUserLocation(latitude, longitude);
+      },
+      (error) => {
+        // Error callback
+        console.error("Error getting location:", error);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            alert(
+              "Please allow location access to receive local disaster alerts."
+            );
+            break;
+          case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+          case error.TIMEOUT:
+            alert("Location request timed out.");
+            break;
+          default:
+            alert("An unknown error occurred.");
+            break;
+        }
+      }
+    );
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+
+  // Listen for disaster alerts
+  socket.on("disaster-alert", (notification) => {
+    alert(`Disaster Alert: ${notification.message}`);
   });
 </script>

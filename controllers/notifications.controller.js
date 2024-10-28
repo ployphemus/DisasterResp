@@ -394,12 +394,21 @@ const createNotificationAndBroadcast = async (req, res, next) => {
       });
     }
 
-    res.json({
-      success: true,
-      notification: notification,
-      message: "Notification created and broadcast",
-      usersNotified: notifUsers ? notifUsers.length : 0,
-    });
+    if (req.accepts("html")) {
+      const referer = req.get("referer");
+      if (referer) {
+        res.redirect(referer);
+      } else {
+        res.redirect("/");
+      }
+    } else {
+      res.json({
+        success: true,
+        notification: notification,
+        message: "Notification created and broadcast",
+        usersNotified: notifUsers ? notifUsers.length : 0,
+      });
+    }
   } catch (err) {
     res.status(500).json({
       success: false,
