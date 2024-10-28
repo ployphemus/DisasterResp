@@ -116,9 +116,10 @@ class MainActivity : ComponentActivity() {
 fun AppWithLoginDialog(
     navController: NavHostController,
     fusedLocationClient: FusedLocationProviderClient
+
 ) {
     var showDialog by remember { mutableStateOf(true) }
-    val context = LocalContext.current
+    //val context = LocalContext.current
 
     if (showDialog) {
         LoginDialog(
@@ -133,7 +134,8 @@ fun AppWithLoginDialog(
             composable("ShelterListScreen") {
                 ShelterListScreen(
                     navController = navController,
-                    fusedLocationClient = fusedLocationClient
+                    fusedLocationClient = fusedLocationClient,
+                    onLogout = { showDialog = true } // Reopen login dialog
                 )
             }
             composable("OnlineInfo") {
@@ -153,7 +155,8 @@ fun AppWithLoginDialog(
 @Composable
 fun ShelterListScreen(
     navController: NavHostController,
-    fusedLocationClient: FusedLocationProviderClient
+    fusedLocationClient: FusedLocationProviderClient,
+    onLogout: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -184,7 +187,9 @@ fun ShelterListScreen(
             TopAppBar(
                 title = { Text("Available Shelters") },
                 navigationIcon = {
-                    MenuButton(navController = navController)
+                    MenuButton(
+                        navController = navController, onLogout = onLogout
+                    )
                 }
             )
         }
@@ -307,8 +312,9 @@ fun ShelterListItem(shelter: Shelter) {
 }
 
 @Composable
-fun MenuButton(navController: NavHostController) {
+fun MenuButton(navController: NavHostController, onLogout: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     IconButton(onClick = { expanded = true }) {
         Icon(
@@ -340,6 +346,21 @@ fun MenuButton(navController: NavHostController) {
             onClick = {
                 navController.navigate("WildfireScreen")
                 expanded = false
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Logout") },
+            onClick = {
+                expanded = false
+                // Perform logout action
+                coroutineScope.launch {
+                    val success = performLogout()
+                    if (success) {
+                        onLogout()
+                    } else {
+                        // Handle logout failure (e.g., show a message)
+                    }
+                }
             }
         )
     }
@@ -463,6 +484,39 @@ suspend fun performLogin(username: String, password: String): Boolean {
         val success = jsonResponse.get("success").asBoolean
 
         return success
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return false
+    }
+}
+
+suspend fun performLogout(): Boolean {
+    try {
+        val client = HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                gson()
+            }
+            install(HttpCookies) {
+                storage = AcceptAllCookiesStorage()
+            }
+
+            expectSuccess = false
+            defaultRequest {
+                headers.append(HttpHeaders.Accept, "application/json")
+            }
+        }
+        val serverIp = "192.168.56.1"
+        val response: HttpResponse = client.get("http://$serverIp:8000/auth/logout")
+
+        val responseBody = response.bodyAsText()
+        println("Logout Response status: ${response.status}")
+        println("Logout Response body: $responseBody")
+
+        val jsonResponse = JsonParser.parseString(responseBody).asJsonObject
+        val status = jsonResponse.get("status").asString
+        val code = jsonResponse.get("code").asString
+
+        return status == "success" && code == "logged out"
     } catch (e: Exception) {
         e.printStackTrace()
         return false
