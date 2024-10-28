@@ -33,6 +33,7 @@ router.post("/create", userController.createUser);
 router.post("/createNewUser", userController.createNewUser);
 router.put("/update/:id", userController.updateUserById);
 router.put("/updateLocation/:id", userController.updateUserLocationById);
+router.put("/update-email/:id", userController.updateUserEmailById);
 router.delete("/delete/:id", userController.deleteUserById);
 router.get("/delete/:id", userController.deleteUserById);
 router.get("/email/:email", userController.getUserByEmail);

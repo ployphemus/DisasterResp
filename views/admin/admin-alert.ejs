@@ -3,15 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <% if (loggedIn) { %>
+    <meta name="user-id" content="<%= user_id %>" />
+    <% } %>
     <title>Send Alert - ShelterSafe</title>
     <link
-            rel="stylesheet"
-            href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
     />
     <link rel="stylesheet" href="/styles/alert_style.css" />
     <script src="/script/alert_script.js" defer></script>
-
-    </head>
+  </head>
 
   <body style="background-color: WHITE">
     <!-- Nav-bar.EJS-->
@@ -20,20 +22,70 @@
     <div class="container">
       <h1 id="title">Alert Management</h1>
 
-      <div class="alert-form">
+      <form
+        class="alert-form"
+        action="/notifications/create-notif-broadcast"
+        method="post"
+      >
         <h2>Create New Alert</h2>
-        <input type="text" id="alertTitle" placeholder="Title" required>
-        <input type="text" id="disasterZone" placeholder="Disaster Zone" required>
-        <textarea id="alertMessage" placeholder="Message" rows="4" required></textarea>
-        <button id="sendAlert">Send Alert</button>
-      </div>
+        <!--         <input
+          type="text"
+          id="disasterZone"
+          placeholder="Disaster Zone"
+          required
+        /> -->
+        <input
+          type="number"
+          id="AdminId"
+          name="AdminId"
+          value="<%= user_id %>"
+          required
+          hidden
+        />
+        <select id="disasterZone" required name="DisasterzoneId">
+          <option value="" disabled selected>Select Disaster Zone</option>
+          <% disasterzones.forEach(function(zone) { %>
+          <option value="<%= zone.id %>"><%= zone.Name %></option>
+          <% }); %>
+        </select>
+        <textarea
+          id="alertMessage"
+          placeholder="Message"
+          rows="4"
+          name="Message"
+          required
+        ></textarea>
+        <button id="sendAlert" type="submit">Send Alert</button>
+      </form>
 
       <h2>Current Alerts</h2>
       <div id="alertsList" class="alerts-list">
         <!-- New alerts will be added here with current date and time -->
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Disaster Zone</th>
+              <th>Disaster Zone ID</th>
+              <th>Created By Admin</th>
+              <th>Message</th>
+              <th>Time Stamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% notifs.forEach((alert) => { %>
+            <tr>
+              <td><%= alert.notification_id %></td>
+              <td><%= alert.disasterzone_name %></td>
+              <td><%= alert.disasterzone_id %></td>
+              <td><%= alert.admin_id %></td>
+              <td><%= alert.Message %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
       </div>
     </div>
-
 
     <footer class="copyright" style="color: black">
       <p>© 2024, ShelterSafe LLC</p>

@@ -23,7 +23,7 @@ async function getAllShelters(req, res, next) {
   console.log("getAllShelters called");
   try {
     const shelter = await model.getAll();
-    console.log("Shelters fetched:", shelter);
+    //console.log("Shelters fetched:", shelter);
     res.json(shelter);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch Shelters" });
