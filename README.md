@@ -23,6 +23,10 @@
 
 6. Feel free to look around the webapp
 
+> Login as admin to see both user and admin pages:
+> email: a@e.com
+> pw: pass
+
 7. To shut the server down, click onto the VS Code terminal and press:
 
 > Ctrl+C
