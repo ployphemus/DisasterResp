@@ -179,7 +179,7 @@ async function getAllSheltersAndDisasterZones(req, res, next) {
   console.log("getAllSheltersAndDisasterZones called");
   try {
     const shelters = await model.getAllSheltersAndDisasterZones();
-    console.log("Shelters fetched:", shelters);
+    //console.log("Shelters fetched:", shelters);
     let loggedIn = req.user ? true : false;
     let user_type = null;
     let user_id = null;

@@ -12,6 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const model = require("../models/notifications.model");
+const disasterZoneModel = require("../models/disasterzone.model");
+const userModel = require("../models/user.model");
 
 let io;
 
@@ -335,13 +337,36 @@ async function deleteNotificationById(req, res, next) {
   }
 }
 
+function isPointInCircle(userLat, userLng, centerLat, centerLng, radiusMiles) {
+  const R = 3958.8; // Earth's radius in miles
+  const rlat1 = userLat * (Math.PI / 180);
+  const rlat2 = centerLat * (Math.PI / 180);
+  const difflat = rlat2 - rlat1;
+  const difflon = (centerLng - userLng) * (Math.PI / 180);
+
+  const d =
+    2 *
+    R *
+    Math.asin(
+      Math.sqrt(
+        Math.sin(difflat / 2) * Math.sin(difflat / 2) +
+          Math.cos(rlat1) *
+            Math.cos(rlat2) *
+            Math.sin(difflon / 2) *
+            Math.sin(difflon / 2)
+      )
+    );
+
+  return d <= radiusMiles;
+}
+
 /**
  * This function createNotificationAndBroadcast() is used to create a new notification in the database and broadcast it to all users in the disaster zone by calling the createNotification() function from the notifications.model.js file and emitting a socket event.
  * @param {*} req The request object containing the parameters of the notification to create from req.body
  * @param {*} res The response object
  * @param {*} next The next middleware function
  */
-const createNotificationAndBroadcast = async (req, res, next) => {
+/* const createNotificationAndBroadcast = async (req, res, next) => {
   console.log("createNotificationAndBroadcast called");
   try {
     let notifmessage = req.body.Message;
@@ -418,7 +443,151 @@ const createNotificationAndBroadcast = async (req, res, next) => {
     console.error(err);
     next(err);
   }
-};
+}; */
+async function createNotificationAndBroadcast(req, res, next) {
+  console.log("createNotificationAndBroadcast called");
+  try {
+    const message = req.body.Message;
+    const adminId = req.body.AdminId;
+    const disasterzoneId = req.body.DisasterzoneId;
+
+    // Get disaster zone details
+    const disasterZone = await disasterZoneModel.getDisasterZoneById(
+      disasterzoneId
+    );
+    console.log("Found disaster zone:", disasterZone);
+
+    if (!disasterZone) {
+      throw new Error("Disaster zone not found");
+    }
+
+    // Create notification entry
+    const params = [message, adminId, disasterzoneId];
+    const notification = await model.createNotification(params);
+    console.log("Notification created:", notification);
+
+    // Get all users
+    const allUsers = await userModel.getAll();
+    console.log(`Processing ${allUsers.length} users for notifications`);
+    const affectedUsers = [];
+
+    // Filter users who are within the disaster zone
+    allUsers.forEach((user) => {
+      if (user.Latitude && user.Longitude) {
+        const isInZone = isPointInCircle(
+          parseFloat(user.Latitude),
+          parseFloat(user.Longitude),
+          parseFloat(disasterZone.Latitude),
+          parseFloat(disasterZone.Longitude),
+          parseFloat(disasterZone.Radius)
+        );
+
+        console.log(`User ${user.id} location check:`, {
+          userLat: user.Latitude,
+          userLng: user.Longitude,
+          isInZone: isInZone,
+        });
+
+        if (isInZone) {
+          affectedUsers.push(user);
+          // Create notification_users entry
+          model
+            .createNotificationUser([user.id, notification.id])
+            .catch((err) =>
+              console.error(
+                `Failed to create notification user entry for user ${user.id}:`,
+                err
+              )
+            );
+        }
+      } else {
+        console.log(`User ${user.id} has no location data`);
+      }
+    });
+
+    console.log(`Found ${affectedUsers.length} affected users`);
+
+    // Emit socket event with disaster zone information
+    if (io) {
+      const socketData = {
+        message: message,
+        zoneId: disasterzoneId,
+        zoneLat: parseFloat(disasterZone.Latitude),
+        zoneLng: parseFloat(disasterZone.Longitude),
+        zoneRadius: parseFloat(disasterZone.Radius),
+        zoneName: disasterZone.Name,
+      };
+
+      console.log("Emitting disaster alert:", socketData);
+      io.emit("disaster-alert", socketData);
+    } else {
+      console.warn(
+        "Socket.io not initialized - no real-time notifications will be sent"
+      );
+    }
+
+    // Send emails to affected users
+    let emailsSent = 0;
+    const processedEmails = new Set();
+    for (const user of affectedUsers) {
+      if (user.Email && !processedEmails.has(user.Email)) {
+        processedEmails.add(user.Email);
+        const mailOptions = {
+          from: process.env.OAUTH_EMAIL_USER,
+          to: user.Email,
+          subject: "Emergency Alert Notification",
+          html: `
+            <h2>Emergency Alert</h2>
+            <p><strong>Message:</strong> ${message}</p>
+            <p><strong>Area:</strong> ${disasterZone.Name}</p>
+            <p>This is an automated emergency alert as you are in an affected area. Please take all necessary precautions.</p>
+            <br>
+            <p>Stay safe,</p>
+            <p>Emergency Response Team</p>
+          `,
+        };
+
+        try {
+          await sendEmailFunc(mailOptions);
+          emailsSent++;
+          console.log(`Email sent to ${user.Email}`);
+        } catch (error) {
+          console.error(`Failed to send email to ${user.Email}:`, error);
+        }
+      }
+    }
+
+    // Send response
+    if (req.accepts("html")) {
+      req.flash("success", `Alert sent to ${affectedUsers.length} users`);
+      return res.redirect("back");
+    }
+
+    return res.json({
+      success: true,
+      notification: notification,
+      stats: {
+        totalUsers: allUsers.length,
+        affectedUsers: affectedUsers.length,
+        emailsSent: emailsSent,
+      },
+      message: `Alert sent successfully to ${affectedUsers.length} users`,
+    });
+  } catch (err) {
+    console.error("Error in createNotificationAndBroadcast:", err);
+
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to send alert");
+      return res.redirect("back");
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: "Failed to create and broadcast notification",
+      message: err.message,
+    });
+  }
+}
 
 module.exports = {
   setIo,
