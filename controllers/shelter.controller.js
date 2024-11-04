@@ -53,6 +53,46 @@ async function getShelterById(req, res, next) {
 }
 
 /**
+ * This function getShelterLocationById() is used to get a shelter's location by their ID from the database by calling the getShelterLocationById() function from the shelter.model.js file.
+ * @param {*} req The request object containing the paramaters of the shelter to get from req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function getShelterLocationById(req, res, next) {
+  console.log("getShelterLocationById called");
+  try {
+    const shelterId = req.params.id;
+    const shelter = await model.getShelterLocationById(shelterId);
+    console.log("Shelter fetched:", shelter);
+    res.json(shelter);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch Shelter" });
+    console.error(err);
+    next(err);
+  }
+}
+
+/**
+ * This function getShelterLocationAndAddressById() is used to get a shelter's location and address by their ID from the database by calling the getShelterLocationAndAddressById() function from the shelter.model.js file.
+ * @param {*} req The request object containing the paramaters of the shelter to get from req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function getShelterLocationAndAddressById(req, res, next) {
+  console.log("getShelterLocationAndAddressById called");
+  try {
+    const shelterId = req.params.id;
+    const shelter = await model.getShelterLocationAndAddressById(shelterId);
+    console.log("Shelter fetched:", shelter);
+    res.json(shelter);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch Shelter" });
+    console.error(err);
+    next(err);
+  }
+}
+
+/**
  * This function createShelter() is used to create a new shelter in the database by calling the createShelter() function from the shelter.model.js file.
  * @param {*} req The request object containing the paramaters of the shelter to create from req.body
  * @param {*} res The response object
@@ -179,7 +219,7 @@ async function getAllSheltersAndDisasterZones(req, res, next) {
   console.log("getAllSheltersAndDisasterZones called");
   try {
     const shelters = await model.getAllSheltersAndDisasterZones();
-    console.log("Shelters fetched:", shelters);
+    //console.log("Shelters fetched:", shelters);
     let loggedIn = req.user ? true : false;
     let user_type = null;
     let user_id = null;
@@ -212,6 +252,8 @@ async function getAllSheltersAndDisasterZones(req, res, next) {
 module.exports = {
   getAllShelters,
   getShelterById,
+  getShelterLocationById,
+  getShelterLocationAndAddressById,
   createShelter,
   updateShelterCapByID,
   updateShelterByID,

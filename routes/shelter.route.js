@@ -16,6 +16,11 @@ router.get(
   controller.getAllSheltersAndDisasterZones,
   authMiddleware.extractUserInfo
 );
+router.get("/getlocation/:id", controller.getShelterLocationById);
+router.get(
+  "/getlocationandaddress/:id",
+  controller.getShelterLocationAndAddressById
+);
 router.get("/:id", controller.getShelterById);
 router.post("/createShelter", controller.createShelter);
 router.put("/updateShelterCapByID/:id", controller.updateShelterCapByID);

@@ -29,6 +29,7 @@ router.get(
 router.get("/resources", userController.getUserResources);
 router.get("/user_account", userController.getUserAccountPage);
 router.get("/:id", userController.getUserById);
+router.get("/location/:id", userController.getUserLocationById);
 router.post("/create", userController.createUser);
 router.post("/createNewUser", userController.createNewUser);
 router.put("/update/:id", userController.updateUserById);

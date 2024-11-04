@@ -41,6 +41,17 @@ async function getUserById(id) {
   }
 }
 
+async function getUserLocationById(id) {
+  const sql = "SELECT Latitude, Longitude FROM users WHERE id = ?";
+  try {
+    const location = await db.get(sql, [id]);
+    return location;
+  } catch (err) {
+    console.error("Error fetching user location by ID:", err);
+    throw err;
+  }
+}
+
 /**
  * This function createUser() creates a new user in the database but without hashing the password.
  * @param {*} params The parameters of the user to create
@@ -265,6 +276,7 @@ async function clearResetToken(id) {
 module.exports = {
   getAll,
   getUserById,
+  getUserLocationById,
   createUser,
   createNewUser,
   updateUserById,

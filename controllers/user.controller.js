@@ -79,6 +79,20 @@ async function getUserById(req, res, next) {
   }
 }
 
+async function getUserLocationById(req, res, next) {
+  console.log("getUserLocationById called");
+  try {
+    const userId = req.params.id;
+    const location = await model.getUserLocationById(userId);
+    console.log("Location fetched from getUserLocationById:", location);
+    res.json(location);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user location" });
+    console.error(err);
+    next(err);
+  }
+}
+
 /**
  * This function createUser() is used to create a new user in the database by calling the createUser() function from the user.model.js file.
  * @param {*} req The request object containing the paramaters of the user to create from req.body
@@ -646,6 +660,7 @@ async function getAdminAlertPage(req, res, next) {
 module.exports = {
   getAllUsers,
   getUserById,
+  getUserLocationById,
   createUser,
   createNewUser,
   updateUserById,
