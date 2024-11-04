@@ -92,17 +92,18 @@ router.post("/resetting-password", userController.resetPassword);
 /**
  * The reset email page
  */
-router.get("/change-email/:token", function (req, res) {
+router.get("/change-email/", function (req, res) {
   res.render("user/change_email", {
     title: "Change Email",
-    token: req.params.token,
   });
 });
 
 /**
  * Handle the reset email request
  */
-router.get("/change-email", userController.updateUserEmailById);
+router.post("/changing-email", userController.updateUserEmailById);
+
+
 
 /* THIS IS EXPERIMENTAL CODE THAT WILL BE DELETED LATER
 router.post('/login', function (req, res, next) {
