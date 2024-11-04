@@ -3,22 +3,24 @@
 <% } %>
 <script src="/socket.io/socket.io.js"></script>
 <script>
+  // Initialize socket connection
   const socket = io();
+
+  // Constants
+  const SHELTER_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  const SHELTER_RADIUS = 0.5; // Increased to 0.5 miles for better detection
+  const LOCATION_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
   let browserLocation = null;
+  let currentCheckInterval = null;
+  let currentShelterId = null;
 
-  // Function to check if user is in affected area
-  function isUserInZone(userLat, userLng, zoneLat, zoneLng, radiusMiles) {
-    console.log("Checking zone:", {
-      user: { lat: userLat, lng: userLng },
-      zone: { lat: zoneLat, lng: zoneLng },
-      radius: radiusMiles,
-    });
-
-    const R = 3958.8;
-    const rlat1 = userLat * (Math.PI / 180);
-    const rlat2 = zoneLat * (Math.PI / 180);
+  // Function to calculate distance between two points
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 3958.8; // Earth's radius in miles
+    const rlat1 = lat1 * (Math.PI / 180);
+    const rlat2 = lat2 * (Math.PI / 180);
     const difflat = rlat2 - rlat1;
-    const difflon = (zoneLng - userLng) * (Math.PI / 180);
+    const difflon = (lon2 - lon1) * (Math.PI / 180);
 
     const d =
       2 *
@@ -33,9 +35,40 @@
         )
       );
 
-    const isInZone = d <= radiusMiles;
-    console.log(`Distance: ${d} miles, In Zone: ${isInZone}`);
-    return isInZone;
+    return d;
+  }
+
+  // Function to check if user is in affected area
+  function isUserInZone(userLat, userLng, zoneLat, zoneLng, radiusMiles) {
+    const distance = calculateDistance(userLat, userLng, zoneLat, zoneLng);
+    console.log("Zone check:", {
+      user: { lat: userLat, lng: userLng },
+      zone: { lat: zoneLat, lng: zoneLng },
+      radius: radiusMiles,
+      distance: distance,
+      isInZone: distance <= radiusMiles,
+    });
+
+    return distance <= radiusMiles;
+  }
+
+  // Function to check if user is at a shelter
+  function isUserAtShelter(userLat, userLng, shelterLat, shelterLng) {
+    const distance = calculateDistance(
+      userLat,
+      userLng,
+      shelterLat,
+      shelterLng
+    );
+    console.log("Shelter proximity check:", {
+      user: { lat: userLat, lng: userLng },
+      shelter: { lat: shelterLat, lng: shelterLng },
+      distance: distance,
+      maxRadius: SHELTER_RADIUS,
+      isAtShelter: distance <= SHELTER_RADIUS,
+    });
+
+    return distance <= SHELTER_RADIUS;
   }
 
   // Function to get browser location
@@ -59,6 +92,11 @@
         (error) => {
           console.error("Error getting browser location:", error);
           reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         }
       );
     });
@@ -86,16 +124,111 @@
     }
   }
 
-  // Setup alerts with location
+  // Function to check shelters and update capacity
+  async function checkAndUpdateShelters(latitude, longitude) {
+    try {
+      console.log("Starting shelter check for user at:", {
+        latitude,
+        longitude,
+      });
+      const response = await fetch("/shelters/all");
+      if (!response.ok) throw new Error("Failed to fetch shelters");
+      const shelters = await response.json();
+
+      console.log(`Checking ${shelters.length} shelters for proximity...`);
+      let foundAtShelter = false;
+
+      // If user was at a shelter and isn't anymore, emit leaving event
+      if (currentShelterId) {
+        let stillAtPreviousShelter = false;
+        const previousShelter = shelters.find((s) => s.id === currentShelterId);
+
+        if (previousShelter) {
+          stillAtPreviousShelter = isUserAtShelter(
+            parseFloat(latitude),
+            parseFloat(longitude),
+            parseFloat(previousShelter.Latitude),
+            parseFloat(previousShelter.Longitude)
+          );
+        }
+
+        if (!stillAtPreviousShelter) {
+          console.log(`User has left shelter: ${currentShelterId}`);
+          socket.emit("user-left-shelter", { shelterId: currentShelterId });
+          currentShelterId = null;
+        }
+      }
+
+      // Check for new shelter
+      for (const shelter of shelters) {
+        if (
+          isUserAtShelter(
+            parseFloat(latitude),
+            parseFloat(longitude),
+            parseFloat(shelter.Latitude),
+            parseFloat(shelter.Longitude)
+          )
+        ) {
+          console.log(`✓ User detected at shelter: ${shelter.Name}`);
+          foundAtShelter = true;
+
+          if (shelter.id !== currentShelterId) {
+            // Only emit if not already at this shelter
+            if (shelter.Current_Capacity < shelter.Maximum_Capacity) {
+              console.log(`Updating capacity for shelter: ${shelter.Name}`, {
+                current: shelter.Current_Capacity,
+                maximum: shelter.Maximum_Capacity,
+              });
+
+              currentShelterId = shelter.id;
+              socket.emit("user-at-shelter", {
+                shelterId: shelter.id,
+                latitude: latitude,
+                longitude: longitude,
+              });
+            } else {
+              console.log(`⚠ Shelter ${shelter.Name} is at maximum capacity`);
+            }
+          }
+          break;
+        } else {
+          console.log(`✗ User not at shelter: ${shelter.Name}`);
+        }
+      }
+
+      if (!foundAtShelter && currentShelterId) {
+        console.log("User has left previous shelter");
+        socket.emit("user-left-shelter", { shelterId: currentShelterId });
+        currentShelterId = null;
+      }
+
+      return foundAtShelter;
+    } catch (error) {
+      console.error("Error during shelter check:", error);
+      return false;
+    }
+  }
+
+  // Setup alerts and shelter monitoring with location
   function setupAlerts(latitude, longitude) {
-    console.log("Setting up alerts for location:", { latitude, longitude });
+    console.log("Setting up alerts and shelter monitoring for location:", {
+      latitude,
+      longitude,
+    });
 
     // Remove existing listeners to prevent duplicates
     socket.off("disaster-alert");
+    socket.off("shelter-capacity-update");
 
-    // Add new listener
+    // Clear existing interval if any
+    if (currentCheckInterval) {
+      clearInterval(currentCheckInterval);
+      console.log("Cleared existing check interval");
+    }
+
+    // Set up disaster alert listener
     socket.on("disaster-alert", (notification) => {
-      console.log("Received alert notification:", notification);
+      console.log("Received disaster alert:", notification);
 
       const isInZone = isUserInZone(
         parseFloat(latitude),
@@ -105,28 +238,74 @@
         parseFloat(notification.zoneRadius)
       );
 
-      console.log(`User in zone ${notification.zoneName}: ${isInZone}`);
-
       if (isInZone) {
+        console.log(`⚠ User in affected zone: ${notification.zoneName}`);
         alert(
           `Disaster Alert for ${notification.zoneName}: ${notification.message}`
         );
       }
     });
+
+    // Set up shelter capacity update listener
+    socket.on("shelter-capacity-update", (data) => {
+      console.log("Shelter capacity update received:", data);
+      const capacityElement = document.querySelector(
+        `[data-shelter-id="${data.shelterId}"]`
+      );
+      if (capacityElement) {
+        capacityElement.textContent = `${data.currentCapacity}/${data.maximumCapacity}`;
+        console.log("Updated capacity display for shelter:", data.shelterId);
+      }
+    });
+
+    // Initial shelter check
+    console.log("Performing initial shelter check");
+    checkAndUpdateShelters(latitude, longitude);
+
+    // Set up periodic shelter checks
+    currentCheckInterval = setInterval(async () => {
+      console.log("Performing periodic shelter check");
+      let currentLocation;
+      const storedLocation = await getStoredLocation();
+
+      if (
+        storedLocation &&
+        storedLocation.Latitude &&
+        storedLocation.Longitude
+      ) {
+        console.log("Using stored location for check");
+        currentLocation = storedLocation;
+      } else {
+        try {
+          console.log("Attempting to get browser location");
+          currentLocation = await getBrowserLocation();
+        } catch (error) {
+          console.error("Could not get current location:", error);
+          return;
+        }
+      }
+
+      if (currentLocation) {
+        await checkAndUpdateShelters(
+          currentLocation.Latitude,
+          currentLocation.Longitude
+        );
+      }
+    }, SHELTER_CHECK_INTERVAL);
+
+    console.log("Alert and monitoring setup complete");
   }
 
   // Initialize alerts system
   async function initialize() {
     console.log("Initializing alerts system...");
     try {
-      // Try to get stored location for logged-in users first
       const locationData = await getStoredLocation();
 
       if (locationData && locationData.Latitude && locationData.Longitude) {
         console.log("Using stored location for logged-in user");
         setupAlerts(locationData.Latitude, locationData.Longitude);
       } else {
-        // If no stored location (user not logged in), try browser location
         console.log("No stored location, attempting to get browser location");
         try {
           const browserLoc = await getBrowserLocation();
@@ -151,6 +330,14 @@
 
   socket.on("disconnect", () => {
     console.log("Socket disconnected");
+    if (currentShelterId) {
+      socket.emit("user-left-shelter", { shelterId: currentShelterId });
+      currentShelterId = null;
+    }
+    if (currentCheckInterval) {
+      clearInterval(currentCheckInterval);
+      console.log("Cleared check interval due to disconnect");
+    }
   });
 
   // Initial setup
@@ -158,15 +345,28 @@
 
   // Periodically update browser location for non-logged-in users
   if (!document.querySelector('meta[name="user-id"]')) {
+    console.log("Setting up periodic location updates for non-logged-in user");
     setInterval(async () => {
       try {
         const newLocation = await getBrowserLocation();
         if (newLocation) {
+          console.log("Updating location for non-logged-in user");
           setupAlerts(newLocation.Latitude, newLocation.Longitude);
         }
       } catch (error) {
         console.error("Error updating browser location:", error);
       }
-    }, 5 * 60 * 1000); // Update every 5 minutes
+    }, LOCATION_UPDATE_INTERVAL);
   }
+
+  // Cleanup on page unload
+  window.addEventListener("beforeunload", () => {
+    if (currentShelterId) {
+      socket.emit("user-left-shelter", { shelterId: currentShelterId });
+    }
+    if (currentCheckInterval) {
+      clearInterval(currentCheckInterval);
+      console.log("Cleared check interval due to page unload");
+    }
+  });
 </script>
