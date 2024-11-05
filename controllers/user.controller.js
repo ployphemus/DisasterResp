@@ -375,6 +375,65 @@ async function updateUserPasswordById(req, res, next) {
 }
 
 /**
+ * This function initiateEmailChange() sends an email to verify the correct user in a similar manner to initiatePasswordChange()
+ * @param {*} req The request object containing the email of the user to reset the email for from req.body
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function initiateEmailChange(req, res, next) {
+  console.log("initiateEmailChange called");
+  try {
+    let email = req.body.Email;
+    const user = await model.getUserByEmail(email);
+    console.log("User fetched from getUserByEmail:", user);
+
+    if (!user) {
+      if (req.accepts("html")) {
+        req.flash("error", "No account found with that email address");
+        return res.redirect("/auth/forgot-password");
+      }
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const token = crypto.randomBytes(20).toString("hex");
+    const expires = new Date(Date.now() + 3600000); // 1 hour from now
+
+    const params = [token, expires, user.id];
+    await model.saveResetToken(params);
+
+    // Send email change email
+    const resetUrl = `http://localhost:8000/auth/new-email/${token}`;
+    const mailOptions = {
+      from: process.env.OAUTH_EMAIL_USER,
+      to: user.Email,
+      subject: "Change Email Request",
+      text: `Please use the following link to change your email: ${resetUrl}`,
+      html: `<p>Please use the following link to change your email:</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
+    };
+    await nodemailer.sendEmailFunc(mailOptions);
+
+    console.log("Change email message sent to:", user.Email);
+
+    if (req.accepts("html")) {
+      req.flash(
+        "success",
+        "Change email message sent. Please check your inbox."
+      );
+      return res.redirect("/auth/login");
+    }
+    return res.status(200).json({ message: "Change email message sent" });
+  } catch (err) {
+    console.error("Failed to initiate email change:", err);
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to process change email request");
+      return res.redirect("/auth/forgot-password");
+    }
+    return res.status(500).json({ error: "Failed to initiate email change" });
+    next(err);
+  }
+}
+
+/**
  * This function updateUserEmailById() is used to update a user's email by their ID in the database by calling the updateUserEmailById() function from the user.model.js file
  * @param {*} req The request object containing the parameters of the user to update from req.body & req.params
  * @param {*} res The response object
@@ -676,5 +735,6 @@ module.exports = {
   getUserResources,
   getUserAccountPage,
   getAdminAlertPage,
+  initiateEmailChange,
   updateUserEmailById,
 };

@@ -90,20 +90,33 @@ router.get("/reset-password/:token", function (req, res) {
 router.post("/resetting-password", userController.resetPassword);
 
 /**
- * The reset email page
+ * The reset email page, sends an email to the user for a token
  */
 router.get("/change-email/", function (req, res) {
-  res.render("user/change_email", {
+  res.render("user/change_email_initiate", {
     title: "Change Email",
   });
 });
 
 /**
- * Handle the reset email request
+ * Handle the reset email message
  */
-router.post("/changing-email", userController.updateUserEmailById);
+router.post("/changing-email", userController.initiateEmailChange);
 
+/**
+ * Set the new email
+ */
+router.get("/new-email/:token", function (req, res) {
+  res.render("user/change_email", {
+    title: "Change Email",
+    token: req.params.token,
+  });
+});
 
+/**
+ * Initiate the email change
+ */
+router.post("/set-new-email", userController.updateUserEmailById);
 
 /* THIS IS EXPERIMENTAL CODE THAT WILL BE DELETED LATER
 router.post('/login', function (req, res, next) {
