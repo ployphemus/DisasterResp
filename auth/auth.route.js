@@ -106,10 +106,10 @@ router.post("/changing-email", userController.initiateEmailChange);
 /**
  * Set the new email
  */
-router.get("/new-email/:token", function (req, res) {
+router.get("/new-email/", function (req, res) {
   res.render("user/change_email", {
     title: "Change Email",
-    token: req.params.token,
+    //token: req.params.token,
   });
 });
 

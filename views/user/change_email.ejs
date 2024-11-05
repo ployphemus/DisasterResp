@@ -20,15 +20,9 @@
     <!-- Content -->
     <img src="/logo.png" alt="logo" width="700" class="center" /><br />
     <form action="/auth/set-new-email" method="post">
-      <input type="hidden" name="token" value="<%= token %>" />
+      <!--<input type="hidden" name="token" value="" />-->
       <div class="form-group">
-        <input
-          type="email"
-          id="typeEmail"
-          class="form-control"
-          aria-describedby="email"
-          placeholder="Enter New Email"
-        /><br />
+        <input type="email" class="form-control" id="email" aria-describedby="email" placeholder="New Email Address" name="Email"><br />
         <small id="email" class="text-muted">
           Must be a valid email
         </small>
