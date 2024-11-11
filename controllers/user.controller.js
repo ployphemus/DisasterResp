@@ -16,6 +16,7 @@ const shelterModel = require("../models/shelter.model");
 const notifsModel = require("../models/notifications.model");
 const disasterzoneModel = require("../models/disasterzone.model");
 const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 const nodemailer = require("../middleware/nodemailer");
 
 /**
@@ -361,12 +362,38 @@ async function updateUserPasswordById(req, res, next) {
   console.log("updateUserPasswordById called");
   try {
     let userId = req.params.id;
-    let password = req.body.Password;
+    let currentPassword = req.body.password;
+    let newPassword = req.body.new_password;
 
-    const params = [password, userId];
-    const user = await model.updateUserPasswordById(params);
-    console.log("User password updated:", user);
-    res.json(user);
+    // Log the inputs to debug
+    console.log("User ID:", userId);
+
+    // Fetch the user from the database
+    const user = await model.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Log the user object to debug
+    console.log("User fetched from DB:", user);
+
+    // Verify the provided current password
+    const isPasswordCorrect = await bcrypt.compare(
+      currentPassword,
+      user.Password
+    ); // Use the correct case
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ error: "Incorrect current password" });
+    }
+
+    // Call the model function to update the password
+    const params = [newPassword, userId];
+    const updatedUser = await model.updateUserPasswordById(params);
+    if (req.accepts("html")) {
+      res.redirect("/auth/login");
+    } else {
+      res.json(updatedUser);
+    }
   } catch (err) {
     res.status(500).json({ error: "Failed to update user password" });
     console.error(err);
@@ -443,12 +470,43 @@ async function updateUserEmailById(req, res, next) {
   console.log("updateUserEmailById called");
   try {
     let userId = req.params.id;
-    let email = req.body.Email;
+    let currentEmail = req.body.old_email;
+    let newEmail = req.body.new_email;
+    let password = req.body.password;
 
-    const params = [email, userId];
-    const user = await model.updateUserEmailById(params);
-    console.log("User email updated:", user);
-    res.json(user);
+    // Log the inputs to debug
+    console.log("User ID:", userId);
+    console.log("Current Email:", currentEmail);
+    console.log("New Email:", newEmail);
+
+    // Fetch the user from the database
+    const user = await model.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Log the user object to debug
+    console.log("User fetched from DB:", user);
+
+    // Verify the provided password
+    const isPasswordCorrect = await bcrypt.compare(password, user.Password); // Use the correct case
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ error: "Incorrect password" });
+    }
+
+    // Proceed to update the email address
+    const params = [newEmail, userId];
+    const updatedUser = await model.updateUserEmailById(params);
+    if (req.accepts("html")) {
+      const referer = req.get("referer");
+      if (referer) {
+        res.redirect(referer);
+      } else {
+        res.redirect("/auth/login");
+      }
+    } else {
+      res.json(updatedUser);
+    }
   } catch (err) {
     res.status(500).json({ error: "Failed to update user email" });
     console.error(err);
@@ -645,40 +703,6 @@ async function getUserResources(req, res, next) {
 }
 
 /**
- * This function getUserAccountPage() is used to render the user account page
- * @param {*} req The request
- * @param {*} res The response
- * @param {*} next The next middleware function
- */
-async function getUserAccountPage(req, res, next) {
-  console.log("getUserAccountPage called");
-  try {
-    let loggedIn = req.user ? true : false;
-    let user_type = null;
-    let user_id = null;
-    if (req.user) {
-      user_type = req.user.userType;
-      user_id = req.user.id;
-    }
-    console.log("Logged in:", loggedIn);
-    console.log("User type:", user_type);
-    console.log("User ID:", user_id);
-
-    res.render("user/user_account", {
-      loggedIn: loggedIn,
-      user_type: user_type,
-      user_id: user_id,
-      title: "User Account",
-      message: req.flash("error")[0],
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to render user account" });
-    console.error(err);
-    next(err);
-  }
-}
-
-/**
  * This function getAdminAlertPage() is used to render the admin alert page
  * @param {*} req The request
  * @param {*} res The response
@@ -733,7 +757,6 @@ module.exports = {
   getAdminDashboard,
   getAdminShelters,
   getUserResources,
-  getUserAccountPage,
   getAdminAlertPage,
   initiateEmailChange,
   updateUserEmailById,

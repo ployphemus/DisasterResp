@@ -15,13 +15,37 @@
     <%- include('../partials/nav-bar') %>
 
     <h1>Reset Email or Password</h1>
-    <form action="/auth/new-email" method="POST">
-      <a href="/auth/new-email" class="new_email">Click to change email</a><br><br>
+    <form action="/auth/change-email/<%= user_id %>" method="POST">
+      <h2>Change Email</h2>
+      <label for="old_email">Old Email:</label>
+      <input
+        type="email"
+        name="old_email"
+        value="<%= user_email %>"
+        required
+        readonly
+      /><br />
+
+      <label for="new_email">New Email:</label>
+      <input type="email" name="new_email" required /><br />
+
+      <label for="password">Password:</label>
+      <input type="password" name="password" required /><br />
+
+      <button type="submit">Submit</button>
     </form>
-    
+
     <!-- reset your password -->
-    <form action="/auth/resetting-password" method="POST">
-      <a href="/auth/forgot-password" class="new_pw">Click to change password</a>
+    <form action="/auth/change-password/<%= user_id %>" method="POST">
+      <h2>Change Password</h2>
+
+      <label for="password">Current Password:</label>
+      <input type="password" name="password" required /><br />
+
+      <label for="new-password">New Password:</label>
+      <input type="password" name="new_password" required /><br />
+
+      <button type="submit">Submit</button>
     </form>
 
     <footer class="copyright" style="color: black">
