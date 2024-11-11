@@ -14,22 +14,23 @@ const userController = require("../controllers/user.controller");
  * This route defines the path to the account settings page.
  * Users will be able to modify their emails and passwords from here.
  */
-router.get("/user_account", function (req, res) {
-  const loggedIn = req.user ? true:false;
+router.get("/user-account", function (req, res) {
+  const loggedIn = req.user ? true : false;
   let user_type = null;
   let user_id = null;
   let user_email = null;
-  if(req.user){
+  if (req.user) {
     user_type = req.user.userType;
     user_id = req.user.id;
-    user_email = req.user.em;
+    user_email = req.user.Email;
   }
   console.log("Logged in:", loggedIn);
   console.log("User type:", user_type);
   console.log("User ID:", user_id);
-  
+  console.log("User Email:", user_email); // Add this line to debug
+
   // if loggedIn = true, render user account page else go to login page
-  if(loggedIn){
+  if (loggedIn) {
     res.render("user/user_account", {
       loggedIn: loggedIn,
       user_type: user_type,
@@ -38,9 +39,8 @@ router.get("/user_account", function (req, res) {
       title: "User Account",
       message: req.flash("error")[0],
     });
-  }
-  else{
-    res.render("user/login", { title: "Login", message: req.flash("error")[0] });
+  } else {
+    res.redirect("/auth/login");
   }
 });
 
@@ -90,33 +90,14 @@ router.get("/reset-password/:token", function (req, res) {
 router.post("/resetting-password", userController.resetPassword);
 
 /**
- * The reset email page, sends an email to the user for a token
+ * This'll handle the change email request.
  */
-router.get("/change-email/", function (req, res) {
-  res.render("user/change_email_initiate", {
-    title: "Change Email",
-  });
-});
+router.post("/change-email/:id", userController.updateUserEmailById);
 
 /**
- * Handle the reset email message
+ * This'll handle the change password request.
  */
-router.post("/changing-email", userController.initiateEmailChange);
-
-/**
- * Set the new email
- */
-router.get("/new-email/", function (req, res) {
-  res.render("user/change_email", {
-    title: "Change Email",
-    //token: req.params.token,
-  });
-});
-
-/**
- * Initiate the email change
- */
-router.post("/set-new-email", userController.updateUserEmailById);
+router.post("/change-password/:id", userController.updateUserPasswordById);
 
 /* THIS IS EXPERIMENTAL CODE THAT WILL BE DELETED LATER
 router.post('/login', function (req, res, next) {
