@@ -27,15 +27,47 @@ router.get(
   userController.getAdminAlertPage
 );
 router.get("/resources", userController.getUserResources);
-router.get("/:id", userController.getUserById);
-router.get("/location/:id", userController.getUserLocationById);
+router.get(
+  "/:id",
+  authMiddleware.isMatchingUserOrAdmin,
+  userController.getUserById
+);
+router.get(
+  "/location/:id",
+  authMiddleware.isMatchingUserOrAdmin,
+  userController.getUserLocationById
+);
 router.post("/create", userController.createUser);
 router.post("/createNewUser", userController.createNewUser);
-router.put("/update/:id", userController.updateUserById);
-router.put("/updateLocation/:id", userController.updateUserLocationById);
-router.delete("/delete/:id", userController.deleteUserById);
-router.get("/delete/:id", userController.deleteUserById);
-router.get("/email/:email", userController.getUserByEmail);
-router.get("/userType/:id", userController.getUserType);
+router.put(
+  "/update/:id",
+  authMiddleware.isMatchingUserOrAdmin,
+  userController.updateUserById
+);
+router.put(
+  "/updateLocation/:id",
+  authMiddleware.isMatchingUserOrAdmin,
+  userController.updateUserLocationById
+);
+router.delete(
+  "/delete/:id",
+  authMiddleware.isMatchingUserOrAdmin,
+  userController.deleteUserById
+);
+router.get(
+  "/delete/:id",
+  authMiddleware.isMatchingUserOrAdmin,
+  userController.deleteUserById
+);
+router.get(
+  "/email/:email",
+  authMiddleware.isMatchingUserOrAdmin,
+  userController.getUserByEmail
+);
+router.get(
+  "/userType/:id",
+  authMiddleware.isMatchingUserOrAdmin,
+  userController.getUserType
+);
 
 module.exports = router;

@@ -43,21 +43,40 @@ router.get(
   "/all/DisasterId-info",
   notificationsController.getAllNotifsByDisasterIdWithUsersAndDisasterZone
 );
-router.post("/create-notif", notificationsController.createNotification);
+router.post(
+  "/create-notif",
+  authMiddleware.isAdmin,
+  notificationsController.createNotification
+);
 router.post(
   "/create-notif-broadcast",
+  authMiddleware.isAdmin,
   notificationsController.createNotificationAndBroadcast
 );
 router.post(
   "/create-notif-user",
+  authMiddleware.isAdmin,
   notificationsController.createNotificationUser
 );
-router.put("/update-notif/:id", notificationsController.updateNotificationById);
-router.post("/update-notif", notificationsController.updateNotificationById);
+router.put(
+  "/update-notif/:id",
+  authMiddleware.isAdmin,
+  notificationsController.updateNotificationById
+);
+router.post(
+  "/update-notif",
+  authMiddleware.isAdmin,
+  notificationsController.updateNotificationById
+);
 router.delete(
   "/delete-notif/:id",
+  authMiddleware.isAdmin,
   notificationsController.deleteNotificationById
 );
-router.get("/delete-notif/:id", notificationsController.deleteNotificationById);
+router.get(
+  "/delete-notif/:id",
+  authMiddleware.isAdmin,
+  notificationsController.deleteNotificationById
+);
 
 module.exports = router;
