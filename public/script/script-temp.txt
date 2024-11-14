@@ -1,0 +1,306 @@
+let map;
+let circles = []; // Array to hold the circle objects for flood data
+let wildfireMarkers = []; // Array to hold wildfire markers
+
+// Function to initialize Google Map
+function initMap() {
+  console.log("Map is initializing...");
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 10,
+    center: { lat: 0, lng: 0 },
+  });
+
+  // Try to get user's real-time location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const userLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        map.setCenter(userLocation);
+        new google.maps.Marker({
+          position: userLocation,
+          map: map,
+          title: "You are here",
+          icon: {
+            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+          },
+        });
+
+        // Update flood data
+        updateUSGSStreamData(userLocation.lat, userLocation.lng);
+
+        // Fetch and display wildfire data using new API
+        const date = getCurrentDate();
+        const wildfireData = await fetchWildfireData(date);
+        if (wildfireData) {
+          displayWildfireDataOnMap(wildfireData);
+        }
+      },
+      () => {
+        console.error("Geolocation service failed.");
+        updateUSGSStreamData(defaultCenter.lat, defaultCenter.lng);
+      }
+    );
+  }
+
+  // Add event listener for when the map is moved or zoomed
+  google.maps.event.addListener(map, "idle", () => {
+    const center = map.getCenter();
+    updateUSGSStreamData(center.lat(), center.lng());
+  });
+
+  // Set up buttons for toggling data
+  /* document.getElementById('toggle-flood').addEventListener('click', function() {
+        showFloodData();
+    }); */
+}
+
+// Function to get the current date in YYYY-MM-DD format
+function getCurrentDate() {
+  const today = new Date();
+  // Use 7 days ago to ensure data exists and is processed
+  today.setDate(today.getDate() - 7); // Changed from 2 to 7 days
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  console.log(`Using date: ${year}-${month}-${day}`);
+  return `${year}-${month}-${day}`;
+}
+
+// Function to fetch and display USGS stream height data (flood info)
+function updateUSGSStreamData(centerLat, centerLon) {
+  const radiusInMiles = 25;
+  const deltaLat = radiusInMiles / 69.0;
+  const deltaLon =
+    radiusInMiles / (69.0 * Math.cos((centerLat * Math.PI) / 180));
+
+  const minLat = centerLat - deltaLat;
+  const maxLat = centerLat + deltaLat;
+  const minLon = centerLon - deltaLon;
+  const maxLon = centerLon + deltaLon;
+
+  const parameterCd = "00065,91110,91111";
+  const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&parameterCd=${parameterCd}&bBox=${minLon.toFixed(
+    5
+  )},${minLat.toFixed(5)},${maxLon.toFixed(5)},${maxLat.toFixed(5)}`;
+
+  fetch(url)
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("USGS Data:", data);
+      displayDataOnMap(data);
+    })
+    .catch((error) => console.error("Error fetching USGS data:", error));
+}
+
+// Function to display flood data on Google Maps and sidebar
+function displayDataOnMap(data) {
+  const timeSeries = data.value.timeSeries;
+  const floodList = document.getElementById("flood-list");
+  floodList.innerHTML = ""; // Clear the existing list
+  circles = []; // Clear previous circles
+
+  timeSeries.slice(0, 10).forEach((series) => {
+    const siteName = series.sourceInfo.siteName;
+    const gageHeight = parseFloat(series.values[0].value[0].value);
+    const latitude = series.sourceInfo.geoLocation.geogLocation.latitude;
+    const longitude = series.sourceInfo.geoLocation.geogLocation.longitude;
+
+    // Determine color based on water gage height
+    let colorClass;
+    if (gageHeight < 2) {
+      colorClass = "green";
+    } else if (gageHeight < 4) {
+      colorClass = "yellow";
+    } else if (gageHeight < 8) {
+      colorClass = "orange";
+    } else {
+      colorClass = "red";
+    }
+
+    // Create a circle on the map at the site's location
+    const circle = new google.maps.Circle({
+      strokeColor: colorClass,
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: colorClass,
+      fillOpacity: 0.35,
+      map: map,
+      center: { lat: latitude, lng: longitude },
+      radius: 1000,
+    });
+
+    circles.push({ circle, siteName, gageHeight, latitude, longitude });
+
+    // Add to the sidebar list
+    const listItem = document.createElement("li");
+    listItem.classList.add(colorClass);
+    listItem.innerHTML = `
+            <strong>${siteName}</strong><br>
+            Location: (${latitude.toFixed(5)}, ${longitude.toFixed(5)})<br>
+            Gage Height: ${gageHeight} ft
+        `;
+
+    listItem.addEventListener("click", () => {
+      map.setCenter({ lat: latitude, lng: longitude });
+      map.setZoom(12);
+    });
+
+    floodList.appendChild(listItem);
+
+    const infoWindow = new google.maps.InfoWindow({
+      content: `<strong>${siteName}</strong><br>Gage Height: ${gageHeight} ft`,
+    });
+
+    google.maps.event.addListener(circle, "click", () => {
+      infoWindow.setPosition(circle.getCenter());
+      infoWindow.open(map);
+    });
+  });
+}
+
+// Update fetch function to handle CSV
+async function fetchWildfireData(date) {
+  try {
+    console.log("Fetching wildfire data for date:", date);
+    const response = await fetch(
+      `http://localhost:8000/disasters/wildfires/${date}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const csvData = await response.text();
+    console.log("Retrieved CSV:", csvData);
+
+    if (!csvData.trim()) {
+      console.warn("Empty CSV response");
+      return [];
+    }
+
+    const wildfireData = parseWildfireCsvData(csvData);
+    console.log(`Parsed ${wildfireData.length} wildfire records`);
+    return wildfireData;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return [];
+  }
+}
+
+// Add back CSV parsing function
+// Update parseWildfireCsvData function
+function parseWildfireCsvData(csvData) {
+  console.log("Raw CSV data:", csvData);
+
+  // Split CSV by both \n and \r\n
+  const lines = csvData.split(/\r?\n/);
+  console.log("CSV lines:", lines);
+
+  if (lines.length <= 1) {
+    console.warn("Not enough lines in CSV");
+    return [];
+  }
+
+  const headers = lines[0].split(",");
+  const headerIndices = {};
+  headers.forEach((name, index) => {
+    headerIndices[name.trim()] = index;
+  });
+
+  console.log("Headers:", headerIndices);
+
+  const dataList = [];
+
+  // Process each data line
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+
+    try {
+      const fields = line.split(",");
+      const latitude = parseFloat(fields[headerIndices["latitude"]]);
+      const longitude = parseFloat(fields[headerIndices["longitude"]]);
+      const confidence = parseFloat(fields[headerIndices["confidence"]]);
+
+      // Only add if we have valid coordinates
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        dataList.push({
+          latitude,
+          longitude,
+          acqDate: fields[headerIndices["acq_date"]],
+          acqTime: fields[headerIndices["acq_time"]],
+          confidence: confidence || 0,
+          status: confidence > 70 ? "Active" : "Extinguished",
+        });
+      }
+    } catch (error) {
+      console.warn(`Error parsing line ${i}:`, error);
+    }
+  }
+
+  console.log("Parsed records:", dataList);
+  return dataList;
+}
+
+function displayWildfireDataOnMap(wildfireData) {
+  if (!Array.isArray(wildfireData)) {
+    console.error("Invalid wildfire data");
+    return;
+  }
+
+  console.log(`Displaying ${wildfireData.length} wildfires`);
+
+  // Clear existing markers
+  wildfireMarkers.forEach((marker) => marker.setMap(null));
+  wildfireMarkers = [];
+
+  wildfireData.forEach((item, index) => {
+    if (!item.latitude || !item.longitude) {
+      console.warn(`Skipping invalid record ${index}`);
+      return;
+    }
+
+    const marker = new google.maps.Marker({
+      position: {
+        lat: Number(item.latitude),
+        lng: Number(item.longitude),
+      },
+      map,
+      title: `Wildfire at ${item.acqDate}`,
+      icon: {
+        url:
+          item.status === "Active"
+            ? "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+            : "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+      },
+    });
+
+    wildfireMarkers.push(marker);
+
+    marker.addListener("click", () => {
+      new google.maps.InfoWindow({
+        content: `
+          <b>Wildfire</b><br>
+          Date: ${item.acqDate} ${item.acqTime}<br>
+          Status: ${item.status}<br>
+          Confidence: ${item.confidence}%
+        `,
+      }).open(map, marker);
+    });
+  });
+
+  console.log(`Added ${wildfireMarkers.length} markers to map`);
+}
+
+window.initMap = initMap;
+
+window.onload = () => {
+  console.log("Page is fully loaded");
+  initMap();
+};

@@ -17,8 +17,20 @@ router.post(
   authMiddleware.isAdmin,
   disasterZoneController.createDisasterZone
 );
-router.put("/update/:id", disasterZoneController.updateDisasterZoneById);
-router.delete("/delete/:id", disasterZoneController.deleteDisasterZoneById);
-router.get("/delete/:id", disasterZoneController.deleteDisasterZoneById);
+router.put(
+  "/update/:id",
+  authMiddleware.isAdmin,
+  disasterZoneController.updateDisasterZoneById
+);
+router.delete(
+  "/delete/:id",
+  authMiddleware.isAdmin,
+  disasterZoneController.deleteDisasterZoneById
+);
+router.get(
+  "/delete/:id",
+  authMiddleware.isAdmin,
+  disasterZoneController.deleteDisasterZoneById
+);
 
 module.exports = router;

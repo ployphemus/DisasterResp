@@ -9,40 +9,33 @@ const router = express.Router();
 
 const controller = require("../controllers/disaster.controller");
 
-router.get("/hurricanes/all", controller.getAllHurricanes);
-router.get("/hurricanes/:id", controller.getHurricaneById);
-router.post("/hurricanes/create", controller.createHurricane);
-router.put("/hurricanes/update/:id", controller.updateHurricaneByID);
-router.delete("/hurricanes/delete/:id", controller.deleteHurricaneByID);
+router.get("/wildfires/:date", async (req, res) => {
+  try {
+    const { date } = req.params;
 
-router.get("/floods/all", controller.getAllFloods);
-router.get("/floods/:id", controller.getFloodById);
-router.post("/floods/create", controller.createFlood);
-router.put("/floods/update/:id", controller.updateFloodByID);
-router.delete("/floods/delete/:id", controller.deleteFloodByID);
+    // Basic date validation
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid date format. Use YYYY-MM-DD" });
+    }
 
-router.get("/wildfires/all", controller.getAllWildfires);
-router.get("/wildfires/:id", controller.getWildfireById);
-router.post("/wildfires/create", controller.createWildfire);
-router.put("/wildfires/update/:id", controller.updateWildfireByID);
-router.delete("/wildfires/delete/:id", controller.deleteWildfireByID);
+    // Prevent future dates
+    const requestDate = new Date(date);
+    const today = new Date();
+    if (requestDate > today) {
+      return res.status(400).json({ error: "Cannot request future dates" });
+    }
 
-router.get("/tornadoes/all", controller.getAllTornadoes);
-router.get("/tornadoes/:id", controller.getTornadoById);
-router.post("/tornadoes/create", controller.createTornado);
-router.put("/tornadoes/update/:id", controller.updateTornadoByID);
-router.delete("/tornadoes/delete/:id", controller.deleteTornadoByID);
+    const csvData = await controller.getWildfireData(date);
+    res.set("Content-Type", "text/csv");
+    res.send(csvData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-router.get("/earthquakes/all", controller.getAllEarthquakes);
-router.get("/earthquakes/:id", controller.getEarthquakeById);
-router.post("/earthquakes/create", controller.createEarthquake);
-router.put("/earthquakes/update/:id", controller.updateEarthquakeByID);
-router.delete("/earthquakes/delete/:id", controller.deleteEarthquakeByID);
-
-router.get("/landslides/all", controller.getAllLandslides);
-router.get("/landslides/:id", controller.getLandslideById);
-router.post("/landslides/create", controller.createLandslide);
-router.put("/landslides/update/:id", controller.updateLandslideByID);
-router.delete("/landslides/delete/:id", controller.deleteLandslideByID);
+// FINISH THIS UP
 
 module.exports = router;
