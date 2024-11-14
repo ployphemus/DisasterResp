@@ -59,6 +59,11 @@ router.get(
   authMiddleware.isMatchingUserOrAdmin,
   userController.deleteUserById
 );
+router.post(
+  "/deleteuser/:id",
+  authMiddleware.isMatchingUser,
+  userController.deleteUserById2
+);
 router.get(
   "/email/:email",
   authMiddleware.isMatchingUserOrAdmin,

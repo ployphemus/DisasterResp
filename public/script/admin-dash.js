@@ -5,6 +5,7 @@ let smallCircle = null; // Variable to store the small circle indicating the cli
 let markers = []; // Array to hold the marker objects for easier access
 let userMarkers = []; // Array to hold user markers
 let showAllUsers = true; // Toggle state for showing all users vs users in disaster zones
+let selectedDisasterZone = null;
 
 /**
  * This function initMap() is used to initialize the Google Map and add event listeners for creating circles and shelters.
@@ -440,10 +441,25 @@ function fetchDisasterZones() {
           radius: radiusInMeters,
         });
 
+        // Store zone data with the circle
+        circle.zoneData = zone;
+
         google.maps.event.addListener(circle, "click", () => {
-          infoWindow.setContent(
-            `<div><strong>${zone.Name}</strong><br>Radius: ${zone.Radius} miles</div>`
-          );
+          selectedDisasterZone = circle;
+
+          // Create info window content with admin controls - Fix the ID reference
+          const content = `
+                      <div>
+                          <strong>${zone.Name}</strong><br>
+                          Radius: ${zone.Radius} miles<br>
+                          <div style="margin-top: 10px;">
+                              <button onclick="editDisasterZone()" style="margin-right: 5px;" class="btn btn-primary">Edit Zone</button>
+                              <button onclick="deleteDisasterZone(${zone.id})" class="btn btn-danger">Delete Zone</button>
+                          </div>
+                      </div>
+                  `;
+
+          infoWindow.setContent(content);
           infoWindow.setPosition({ lat: zone.Latitude, lng: zone.Longitude });
           infoWindow.open(map);
         });
@@ -672,6 +688,171 @@ function displayDataOnMap(data) {
       infoWindow.open(map);
     });
   });
+}
+
+function deleteDisasterZone(zoneId) {
+  if (
+    confirm(
+      "Are you sure you want to delete this disaster zone? This will also delete all associated shelters."
+    )
+  ) {
+    fetch(`http://localhost:8000/disasterzone/delete/${zoneId}`, {
+      method: "DELETE", // Change to DELETE method
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (selectedDisasterZone) {
+          selectedDisasterZone.setMap(null);
+          circles = circles.filter((circle) => circle !== selectedDisasterZone);
+        }
+        infoWindow.close();
+        fetchDisasterZones();
+        fetchShelters();
+        alert("Disaster zone deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting disaster zone:", error);
+        alert("Failed to delete disaster zone. Please try again.");
+      });
+  }
+}
+
+function editDisasterZone() {
+  if (!selectedDisasterZone || !selectedDisasterZone.zoneData) return;
+
+  const zone = selectedDisasterZone.zoneData;
+
+  // Create and show edit modal
+  const modalHtml = `
+    <div id="editZoneModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="document.getElementById('editZoneModal').style.display='none'">&times;</span>
+        <h2>Edit Disaster Zone</h2>
+        <form id="editZoneForm">
+          <div style="margin-bottom: 10px;">
+            <label for="zoneName">Zone Name:</label>
+            <input type="text" id="zoneName" value="${zone.Name}" required>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label for="zoneRadius">Radius (miles):</label>
+            <input type="number" id="zoneRadius" value="${zone.Radius}" required>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label for="zoneColor">Color:</label>
+            <input type="color" id="zoneColor" value="#${zone.HexColor}">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  // Add modal to document if it doesn't exist
+  if (!document.getElementById("editZoneModal")) {
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+  }
+
+  // Show modal
+  const modal = document.getElementById("editZoneModal");
+  modal.style.display = "block";
+
+  document.getElementById("editZoneForm").onsubmit = (e) => {
+    e.preventDefault();
+
+    const updatedZone = {
+      Name: document.getElementById("zoneName").value,
+      Radius: parseFloat(document.getElementById("zoneRadius").value),
+      HexColor: document.getElementById("zoneColor").value.substring(1), // Remove #
+      Latitude: zone.Latitude,
+      Longitude: zone.Longitude,
+    };
+
+    fetch(`http://localhost:8000/disasterzone/update/${zone.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedZone),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Close modal
+        modal.style.display = "none";
+
+        // If radius changed, check for new schools
+        if (updatedZone.Radius !== zone.Radius) {
+          const center = { lat: zone.Latitude, lng: zone.Longitude };
+          const radiusInMeters = updatedZone.Radius * 1609.34; // Convert miles to meters
+          fetchSchoolsAndCreateShelters(center, radiusInMeters, zone.id);
+        }
+
+        // Refresh the map
+        fetchDisasterZones();
+
+        alert("Disaster zone updated successfully");
+      })
+      .catch((error) => {
+        console.error("Error updating disaster zone:", error);
+        alert("Failed to update disaster zone. Please try again.");
+      });
+  };
+}
+
+// Add CSS for the buttons and modal
+const styles = `
+  .btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  #editZoneModal .modal-content {
+    width: 400px;
+    padding: 20px;
+  }
+
+  #editZoneModal input {
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+  }
+
+  #editZoneModal label {
+    font-weight: bold;
+  }
+`;
+
+// Add styles to document
+if (!document.getElementById("adminStyles")) {
+  const styleSheet = document.createElement("style");
+  styleSheet.id = "adminStyles";
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
 }
 
 window.initMap = initMap;

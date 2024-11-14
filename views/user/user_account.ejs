@@ -48,6 +48,14 @@
       <button type="submit">Submit</button>
     </form>
 
+    <form action="/users/deleteuser/<%= user_id %>" method="POST">
+      <h3>Delete Account</h3>
+      <label for="password">Password:</label>
+      <input type="password" name="password" required /><br />
+
+      <button type="submit">Delete Account</button>
+    </form>
+
     <footer class="copyright" style="color: black">
       <p>© 2024, ShelterSafe LLC</p>
     </footer>

@@ -12,8 +12,14 @@ app.use(multer().none());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const model = require("../models/disaster.model");
+const disasterModel = require("../models/disaster.model");
 
+/**
+ * This function fetchWildfireData() fetches wildfire data from the NASA API.
+ * @param {*} apiKey The API key to use for the request
+ * @param {*} date The date to fetch the data for
+ * @returns {string} The CSV data for the specified date
+ */
 async function fetchWildfireData(apiKey, date) {
   const layer = "VIIRS_SNPP_NRT";
   const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${apiKey}/${layer}/world/1/0/${date}`;
@@ -36,17 +42,20 @@ async function fetchWildfireData(apiKey, date) {
   }
 }
 
+/**
+ * This function initializeData() initializes the wildfire data by fetching data for the past 7 days.
+ */
 async function initializeData() {
   try {
-    const dates = await model.initialize();
+    const dates = await disasterModel.initialize();
     console.log("Checking data for dates:", dates);
 
     for (const date of dates) {
-      const exists = await model.getWildfiresByDate(date);
+      const exists = await disasterModel.getWildfiresByDate(date);
       if (!exists) {
         console.log(`Fetching new data for ${date}...`);
         const csvData = await fetchWildfireData(process.env.NASA_API_KEY, date);
-        await model.saveWildfireData(date, csvData);
+        await disasterModel.saveWildfireData(date, csvData);
         console.log(`Saved CSV data for ${date}`);
       }
     }
@@ -55,16 +64,19 @@ async function initializeData() {
   }
 }
 
+/**
+ * This function getWildfireData() retrieves the wildfire data for a specific date.
+ * @param {*} date The date to retrieve the wildfire data
+ * @returns {string} The CSV data for the specified date
+ */
 async function getWildfireData(date) {
   try {
-    // Check if we have cached data
-    let data = await model.getWildfiresByDate(date);
+    let data = await disasterModel.getWildfiresByDate(date);
 
-    // If no cached data, fetch from API
     if (!data) {
       data = await fetchWildfireData(process.env.NASA_API_KEY, date);
       if (data) {
-        await model.saveWildfireData(date, data);
+        await disasterModel.saveWildfireData(date, data);
       }
     }
 
@@ -78,9 +90,8 @@ async function getWildfireData(date) {
   }
 }
 
-if (!process.env.NASA_API_KEY) {
-  console.error("NASA_API_KEY not found");
-  process.exit(1);
-}
-
-module.exports = { initializeData, getWildfireData };
+module.exports = {
+  fetchWildfireData,
+  initializeData,
+  getWildfireData,
+};

@@ -27,10 +27,5 @@ router.delete(
   authMiddleware.isAdmin,
   disasterZoneController.deleteDisasterZoneById
 );
-router.get(
-  "/delete/:id",
-  authMiddleware.isAdmin,
-  disasterZoneController.deleteDisasterZoneById
-);
 
 module.exports = router;

@@ -6,9 +6,12 @@
 "use strict";
 const express = require("express");
 const router = express.Router();
+const disasterController = require("../controllers/disaster.controller");
 
-const controller = require("../controllers/disaster.controller");
+// Initialize data when server starts
+disasterController.initializeData().catch(console.error);
 
+// Get wildfire data for a specific date
 router.get("/wildfires/:date", async (req, res) => {
   try {
     const { date } = req.params;
@@ -28,14 +31,35 @@ router.get("/wildfires/:date", async (req, res) => {
       return res.status(400).json({ error: "Cannot request future dates" });
     }
 
-    const csvData = await controller.getWildfireData(date);
+    const csvData = await disasterController.getWildfireData(date);
     res.set("Content-Type", "text/csv");
     res.send(csvData);
   } catch (error) {
+    console.error("Error fetching wildfire data:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// FINISH THIS UP
+// Get wildfire data for the past week
+router.get("/wildfires/recent/week", async (req, res) => {
+  try {
+    const dates = await disasterModel.getPastDays(7);
+    const allData = await Promise.all(
+      dates.map(async (date) => {
+        try {
+          const csvData = await disasterController.getWildfireData(date);
+          return { date, data: csvData };
+        } catch (error) {
+          console.error(`Error fetching data for ${date}:`, error);
+          return { date, error: error.message };
+        }
+      })
+    );
+    res.json(allData);
+  } catch (error) {
+    console.error("Error fetching weekly data:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;

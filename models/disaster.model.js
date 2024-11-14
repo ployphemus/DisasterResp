@@ -15,15 +15,24 @@ const path = require("path");
 
 const dataDir = path.join(__dirname, "../data/wildfires");
 
+/**
+ * This function initialize() creates the data directory and returns the past 7 days in ISO format by calling getPastDays(7) function.
+ * @returns {string[]} An array of the past 7 days in ISO format
+ */
 async function initialize() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
-    return getPastDays(7); // Get last 7 days of data
+    return getPastDays(7);
   } catch (error) {
     throw new Error(`Failed to create data directory: ${error.message}`);
   }
 }
 
+/**
+ * This function saveWildfireData() saves the wildfire data for a specific date.
+ * @param {*} date The date to save the wildfire data for
+ * @param {*} csvData The CSV data to save
+ */
 async function saveWildfireData(date, csvData) {
   const filePath = path.join(dataDir, `${date}.csv`);
   try {
@@ -33,6 +42,11 @@ async function saveWildfireData(date, csvData) {
   }
 }
 
+/**
+ * This function getWildfiresByDate() retrieves the wildfire data for a specific date.
+ * @param {*} date The date to retrieve the wildfire data for
+ * @returns {string} The CSV data for the specified date
+ */
 async function getWildfiresByDate(date) {
   const filePath = path.join(dataDir, `${date}.csv`);
   try {
@@ -43,13 +57,18 @@ async function getWildfiresByDate(date) {
   }
 }
 
+/**
+ * This function getPastDays() returns an array of the past days in ISO format.
+ * @param {*} days The number of past days to retrieve
+ * @returns {string[]} An array of the past days in ISO format
+ */
 function getPastDays(days) {
   const dates = [];
   const today = new Date();
 
   for (let i = 0; i < days; i++) {
     const date = new Date(today);
-    date.setDate(date.getDate() - i - 1);
+    date.setDate(date.getDate() - i);
     dates.push(date.toISOString().split("T")[0]);
   }
   return dates;
@@ -59,4 +78,5 @@ module.exports = {
   initialize,
   saveWildfireData,
   getWildfiresByDate,
+  getPastDays,
 };
