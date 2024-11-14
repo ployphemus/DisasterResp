@@ -172,28 +172,18 @@ function displayDataOnMap(data) {
 
 // Fetch wildfire CSV data from NASA API
 async function fetchWildfireCsvData(apiKey, date) {
-  const layer = "VIIRS_SNPP_NRT";
-  const areaType = "world";
-  const area = "1"; // global area
-  const buffer = "0";
-
-  const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${apiKey}/${layer}/${areaType}/${area}/${buffer}/${date}`;
-
   try {
-    const response = await fetch(url, {
-      headers: {
-        Accept: "text/plain",
-      },
-    });
+    // Instead of calling NASA API directly, call our backend API
+    const response = await fetch(`/disasters/wildfires/${date}`);
 
-    if (response.ok) {
-      const csvData = await response.text();
-      console.log("CSV Data:\n", csvData);
-      return csvData;
-    } else {
-      console.error(`HTTP error: ${response.status}`);
+    if (!response.ok) {
+      const error = await response.json();
+      console.error(`HTTP error: ${error.error}`);
       return null;
     }
+
+    const csvData = await response.text();
+    return csvData;
   } catch (e) {
     console.error("Exception during API call", e);
     return null;
