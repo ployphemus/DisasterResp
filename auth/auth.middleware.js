@@ -27,15 +27,26 @@ function isAdmin(req, res, next) {
  */
 function isMatchingUserOrAdmin(req, res, next) {
   if (!req.user) {
-    res.status(403).send("Only admins or the user can access this");
+    return res.status(403).send("Only admins or the user can access this");
   }
 
+  // Convert session ID to string
+  const userIdFromSession = String(req.user.id);
+
+  // Check both params and body for user ID
+  const userIdFromParams = req.params.id ? String(req.params.id) : null;
+  const userIdFromBody = req.body.user_id ? String(req.body.user_id) : null;
+
   if (
-    req.user &&
-    (req.user.userType === "ADMIN" || req.user.id === req.params.id)
+    req.user.userType === "ADMIN" ||
+    userIdFromSession === userIdFromParams ||
+    userIdFromSession === userIdFromBody
   ) {
     next();
   } else {
+    console.log("Session user ID:", userIdFromSession);
+    console.log("Params user ID:", userIdFromParams);
+    console.log("Body user ID:", userIdFromBody);
     res.status(403).send("Only admins or the user can access this route");
   }
 }
