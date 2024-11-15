@@ -1,0 +1,231 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: BLACK;
+}
+
+.nav {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    position: relative; /* Ensure this has a stacking context */
+    z-index: 10; /* Higher than the map */
+    margin-bottom: 10px;
+}
+
+.nav-right {
+    font-family: sans-serif;
+    display: flex;
+    margin-left: auto;
+}
+
+.logo {
+    padding-top: 10px;
+    padding-left: 30px;
+    padding-bottom: 5px;
+}
+
+/* Navbar base color */
+.navbar ul{
+    list-style-type: none;
+    background-color: #d30000;
+    padding: 0px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+/* Navbar text color */
+.navbar a{
+    color: white;
+    text-decoration: none;
+    padding: 15px;
+    display: block;
+    text-align: right;
+}
+
+/* Navbar hover color */
+.navbar a:hover{
+    background-color: #7f0338;
+}
+
+/* Navbar text right */
+.navbar li{
+    float: right;
+}
+
+.container {
+    margin: auto;
+    display: flex;
+    width: 75vw;
+    height: 525px; /* Full viewport height */
+}
+
+#map {
+    height: 72vh;
+    width: 80%;
+    margin: 20px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.left-side {
+    padding-right: 15px;
+    margin: 20px auto;
+}
+
+/* Sidebar for flood stage monitoring */
+.sidebar {
+    width: 25%; /* takes 25% of the container space */
+    padding: 10px;
+    background-color: rgba(0,0,0,0.83);
+    border-left: 1px solid #ccc;
+    height: 72vh; /* Full height of the container */
+    overflow-y: auto; /* Scrollable if content exceeds height */
+    margin: 20px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.monitor {
+    color:white;
+}
+
+/* Styles for the flood list */
+#flood-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.tab-container {
+    display: flex;
+    justify-content: space-between;
+    background-color: rgba(0,0,0,0.83);
+    border-bottom: 1px solid #ccc;
+}
+
+/* Individual tab button */
+.tab {
+    width: 50%;
+    padding: 10px;
+    cursor: pointer;
+    text-align: center;
+    background-color: rgba(0,0,0,0.83);
+    color: white;
+    border: none;
+    outline: none;
+}
+
+/* Active tab */
+.tab.active {
+    background-color: #7f0338;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Wildfire and flood list style */
+#flood-list li, #wildfire-list li {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #f8f9fa; /* Light background to differentiate items */
+}
+
+/* Maintain the color scheme for wildfire/flood levels */
+#flood-list li.green, #wildfire-list li.green {
+    background-color: #d4edda;
+}
+
+#flood-list li.yellow, #wildfire-list li.yellow {
+    background-color: #fff3cd;
+}
+
+#flood-list li.orange, #wildfire-list li.orange {
+    background-color: #ffe5b5;
+}
+
+#flood-list li.red, #wildfire-list li.red {
+    background-color: #f8d7da;
+}
+
+.logo {
+    padding-left: 20px;
+    padding-bottom: 5px;
+}
+
+.main {
+    flex: 70%;
+    padding-top: 25px;
+    margin: auto;
+    width: 75%
+}
+
+a {
+    color: BLACK;
+    text-decoration: none;
+}
+
+a:hover {
+    color: gray;
+    cursor: pointer;
+}
+
+button {
+    border: none;
+    border-radius: 5px;
+    padding: 15px 30px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #ddd;
+}
+
+#about{
+    padding-top: 200px;
+    width: 75%;
+    align-self: center;
+    text-align: center;
+}
+
+#app{
+    width: 75%;
+    align-self: center;
+    text-align: center;
+}
+
+.copyright {
+    margin-left: auto;
+    padding-left: 50px;
+    padding-top: 100px;
+}
+
+.row {
+    text-align: center;
+}
+
+.links {
+    justify-content: space-evenly;
+    display: flex;
+    padding-top: 60px;
+    gap: 20px;
+}
+
+.banner {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.banner img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
