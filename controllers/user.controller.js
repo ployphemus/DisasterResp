@@ -548,6 +548,71 @@ async function deleteUserById(req, res, next) {
 }
 
 /**
+ * This function deleteUserById2() is used to delete a user by their ID in the database by calling the deleteUserById() function from the user.model.js file
+ * @param {*} req The request object containing the params of the user to delete from req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function deleteUserById2(req, res, next) {
+  console.log("deleteUserById2 called");
+  try {
+    const userId = req.params.id;
+    const password = req.body.password;
+
+    // Fetch user to verify password
+    const user = await model.getUserById(userId);
+    if (!user) {
+      if (req.accepts("html")) {
+        req.flash("error", "User not found");
+        return res.redirect("/auth/login");
+      }
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Verify the provided password
+    const isPasswordCorrect = await bcrypt.compare(password, user.Password);
+    if (!isPasswordCorrect) {
+      if (req.accepts("html")) {
+        req.flash("error", "Incorrect password");
+        return res.redirect("/auth/login");
+      }
+      return res.status(401).json({ error: "Incorrect password" });
+    }
+
+    // If password matches, proceed with deletion
+    const deletedUser = await model.deleteUserById(userId);
+    console.log("User deleted:", deletedUser);
+
+    if (req.accepts("html")) {
+      // Set flash message before destroying session
+      req.flash("success", "Account successfully deleted");
+
+      // Now destroy the session
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+        }
+        res.redirect("/auth/register");
+      });
+    } else {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+        }
+        res.status(200).json({ message: "Account successfully deleted" });
+      });
+    }
+  } catch (err) {
+    console.error("Failed to delete user:", err);
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to delete account");
+      return res.redirect("/auth/login");
+    }
+    res.status(500).json({ error: "Failed to delete account" });
+    next(err);
+  }
+}
+/**
  * This function getUserByEmail() is used to get a user by their email from the database by calling the getUserByEmail() function from the user.model.js file
  * @param {*} req The request object containing the email of the user to get from req.params
  * @param {*} res The response object
@@ -750,6 +815,7 @@ module.exports = {
   updateUserLocationById,
   updateUserPasswordById,
   deleteUserById,
+  deleteUserById2,
   getUserByEmail,
   getUserType,
   initiatePasswordReset,

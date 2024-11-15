@@ -537,10 +537,12 @@ async function createNotificationAndBroadcast(req, res, next) {
           to: user.Email,
           subject: "Emergency Alert Notification",
           html: `
-            <h2>Emergency Alert</h2>
+            <h2>Emergency Alert (TEST FOR A PROJECT - NOT REAL!!! - IGNORE THIS EMAIL!!!)</h2>
             <p><strong>Message:</strong> ${message}</p>
             <p><strong>Area:</strong> ${disasterZone.Name}</p>
             <p>This is an automated emergency alert as you are in an affected area. Please take all necessary precautions.</p>
+            <p>THIS IS A TEST FOR A PROJECT - NOT A REAL ALERT!!!</p>
+            <p>PLEASE IGNORE THIS EMAIL</p>
             <br>
             <p>Stay safe,</p>
             <p>Emergency Response Team</p>

@@ -3,6 +3,9 @@ let circles = []; // Array to hold the circle objects for easier access
 let clickedCoordinates = null; // Variable to store clicked coordinates
 let smallCircle = null; // Variable to store the small circle indicating the clicked location
 let markers = []; // Array to hold the marker objects for easier access
+let userMarkers = []; // Array to hold user markers
+let showAllUsers = true; // Toggle state for showing all users vs users in disaster zones
+let selectedDisasterZone = null;
 
 /**
  * This function initMap() is used to initialize the Google Map and add event listeners for creating circles and shelters.
@@ -18,11 +21,32 @@ function initMap() {
     anchor: new google.maps.Point(16, 32), // Center bottom of the image
   };
 
+  userIcon = {
+    url: "/user.png",
+    scaledSize: new google.maps.Size(24, 24), // Reduced from 32x32 to 24x24
+    origin: new google.maps.Point(0, 0),
+    anchor: new google.maps.Point(12, 24), // Adjusted anchor point
+  };
+
   map = new google.maps.Map(document.getElementById("map"), {
     zoom: 10,
     center: center,
   });
   infoWindow = new google.maps.InfoWindow();
+
+  // Add toggle button for user display
+  const userToggleButton = document.createElement("button");
+  userToggleButton.textContent = "Toggle User Display";
+  userToggleButton.classList.add("custom-map-control-button");
+  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(userToggleButton);
+
+  userToggleButton.addEventListener("click", () => {
+    showAllUsers = !showAllUsers;
+    updateUserMarkers();
+    userToggleButton.textContent = showAllUsers
+      ? "Show Users in Disaster Zones"
+      : "Show All Users";
+  });
 
   const locationButton = document.createElement("button");
   locationButton.textContent = "Pan to Current Location";
@@ -206,6 +230,9 @@ function initMap() {
 
   // Fetch and draw all shelters
   fetchShelters();
+
+  // Add initial user markers
+  fetchAndDisplayUsers();
 }
 
 /**
@@ -250,15 +277,159 @@ function drawSmallCircle(coordinates) {
   });
 }
 
-/**
- * This function fetchDisasterZones() is used to fetch all disaster zones from the server and draw them on the map.
- */
+// Add this new function to check if a user is near a shelter
+function isUserNearShelter(userLat, userLng) {
+  const SHELTER_PROXIMITY_THRESHOLD = 50; // 50 meters threshold
+
+  return markers.some((marker) => {
+    if (!marker.getPosition) return false;
+
+    const distance = google.maps.geometry.spherical.computeDistanceBetween(
+      new google.maps.LatLng(userLat, userLng),
+      marker.getPosition()
+    );
+
+    return distance <= SHELTER_PROXIMITY_THRESHOLD;
+  });
+}
+
+// Update the fetchAndDisplayUsers function to wait for shelters to load first
+function fetchAndDisplayUsers() {
+  // First ensure shelters are loaded
+  fetch("http://localhost:8000/shelters/all")
+    .then((response) => response.json())
+    .then((shelterData) => {
+      // Clear existing markers
+      markers.forEach((marker) => marker.setMap(null));
+      markers = [];
+
+      // Create shelter markers
+      shelterData.forEach((shelter) => {
+        const marker = new google.maps.Marker({
+          position: { lat: shelter.Latitude, lng: shelter.Longitude },
+          map: map,
+          title: shelter.Name,
+          icon: shelterIcon,
+        });
+
+        google.maps.event.addListener(marker, "click", () => {
+          infoWindow.setContent(
+            `<div><strong>${shelter.Name}</strong>
+            <br>Capacity: ${shelter.Maximum_Capacity}
+            <br>Current Capacity: ${shelter.Current_Capacity}</div>`
+          );
+          infoWindow.setPosition(marker.getPosition());
+          infoWindow.open(map);
+        });
+
+        markers.push(marker);
+      });
+
+      // Now fetch and display users after shelters are loaded
+      return fetch("http://localhost:8000/users/all", {
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+    })
+    .then((response) => response.json())
+    .then((users) => {
+      clearUserMarkers();
+      users.forEach((user) => {
+        if (user.Latitude && user.Longitude) {
+          createUserMarker(user);
+        }
+      });
+      updateUserMarkers();
+    })
+    .catch((error) => {
+      console.error("Error loading map data:", error);
+      alert("Failed to load map data. Please try again later.");
+    });
+}
+
+// Update the createUserMarker function to check shelter proximity
+function createUserMarker(user) {
+  // First check if user is near a shelter
+  if (isUserNearShelter(user.Latitude, user.Longitude)) {
+    // Don't create marker if user is near shelter
+    return;
+  }
+
+  const marker = new google.maps.Marker({
+    position: { lat: user.Latitude, lng: user.Longitude },
+    map: null, // Don't show immediately
+    title: user.Name || "User",
+    icon: userIcon,
+  });
+
+  // Add click listener for user info
+  google.maps.event.addListener(marker, "click", () => {
+    infoWindow.setContent(
+      `<div>
+        <strong>${user.Name || "User"}</strong>
+        ${user.Email ? `<br>Email: ${user.Email}` : ""}
+      </div>`
+    );
+    infoWindow.setPosition(marker.getPosition());
+    infoWindow.open(map);
+  });
+
+  userMarkers.push({
+    marker: marker,
+    user: user,
+  });
+}
+
+// Function to clear all user markers
+function clearUserMarkers() {
+  userMarkers.forEach(({ marker }) => {
+    marker.setMap(null);
+  });
+  userMarkers = [];
+}
+
+// Function to check if a point is inside any disaster zone
+function isPointInDisasterZones(lat, lng) {
+  return circles.some((circle) => {
+    const center = circle.getCenter();
+    const radius = circle.getRadius();
+    const distance = google.maps.geometry.spherical.computeDistanceBetween(
+      new google.maps.LatLng(lat, lng),
+      center
+    );
+    return distance <= radius;
+  });
+}
+
+// Update the updateUserMarkers function to also check shelter proximity
+function updateUserMarkers() {
+  userMarkers.forEach(({ marker, user }) => {
+    if (showAllUsers && !isUserNearShelter(user.Latitude, user.Longitude)) {
+      marker.setMap(map);
+    } else if (!showAllUsers) {
+      // For disaster zone only view, still check shelter proximity
+      const isInZone = isPointInDisasterZones(user.Latitude, user.Longitude);
+      const nearShelter = isUserNearShelter(user.Latitude, user.Longitude);
+      marker.setMap(isInZone && !nearShelter ? map : null);
+    } else {
+      marker.setMap(null);
+    }
+  });
+}
+
+// Update the existing fetchDisasterZones function to trigger user marker update
 function fetchDisasterZones() {
   fetch("http://localhost:8000/disasterzone/all")
     .then((response) => response.json())
     .then((data) => {
+      // Clear existing circles
+      circles.forEach((circle) => circle.setMap(null));
+      circles = [];
+
       data.forEach((zone) => {
-        const radiusInMeters = zone.Radius * 1609.34; // Convert radius from miles to meters
+        const radiusInMeters = zone.Radius * 1609.34;
         const circle = new google.maps.Circle({
           strokeColor: "#" + zone.HexColor,
           strokeOpacity: 0.8,
@@ -270,17 +441,34 @@ function fetchDisasterZones() {
           radius: radiusInMeters,
         });
 
-        // Add an event listener to show an InfoWindow with the name and radius
+        // Store zone data with the circle
+        circle.zoneData = zone;
+
         google.maps.event.addListener(circle, "click", () => {
-          infoWindow.setContent(
-            `<div><strong>${zone.Name}</strong><br>Radius: ${zone.Radius} miles</div>`
-          );
+          selectedDisasterZone = circle;
+
+          // Create info window content with admin controls - Fix the ID reference
+          const content = `
+                      <div>
+                          <strong>${zone.Name}</strong><br>
+                          Radius: ${zone.Radius} miles<br>
+                          <div style="margin-top: 10px;">
+                              <button onclick="editDisasterZone()" style="margin-right: 5px;" class="btn btn-primary">Edit Zone</button>
+                              <button onclick="deleteDisasterZone(${zone.id})" class="btn btn-danger">Delete Zone</button>
+                          </div>
+                      </div>
+                  `;
+
+          infoWindow.setContent(content);
           infoWindow.setPosition({ lat: zone.Latitude, lng: zone.Longitude });
           infoWindow.open(map);
         });
 
-        circles.push(circle); // Store the circle for easier access
+        circles.push(circle);
       });
+
+      // Update user markers after disaster zones are loaded
+      updateUserMarkers();
     })
     .catch((error) => console.error("Error fetching disaster zones:", error));
 }
@@ -500,6 +688,171 @@ function displayDataOnMap(data) {
       infoWindow.open(map);
     });
   });
+}
+
+function deleteDisasterZone(zoneId) {
+  if (
+    confirm(
+      "Are you sure you want to delete this disaster zone? This will also delete all associated shelters."
+    )
+  ) {
+    fetch(`http://localhost:8000/disasterzone/delete/${zoneId}`, {
+      method: "DELETE", // Change to DELETE method
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (selectedDisasterZone) {
+          selectedDisasterZone.setMap(null);
+          circles = circles.filter((circle) => circle !== selectedDisasterZone);
+        }
+        infoWindow.close();
+        fetchDisasterZones();
+        fetchShelters();
+        alert("Disaster zone deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Error deleting disaster zone:", error);
+        alert("Failed to delete disaster zone. Please try again.");
+      });
+  }
+}
+
+function editDisasterZone() {
+  if (!selectedDisasterZone || !selectedDisasterZone.zoneData) return;
+
+  const zone = selectedDisasterZone.zoneData;
+
+  // Create and show edit modal
+  const modalHtml = `
+    <div id="editZoneModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="document.getElementById('editZoneModal').style.display='none'">&times;</span>
+        <h2>Edit Disaster Zone</h2>
+        <form id="editZoneForm">
+          <div style="margin-bottom: 10px;">
+            <label for="zoneName">Zone Name:</label>
+            <input type="text" id="zoneName" value="${zone.Name}" required>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label for="zoneRadius">Radius (miles):</label>
+            <input type="number" id="zoneRadius" value="${zone.Radius}" required>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label for="zoneColor">Color:</label>
+            <input type="color" id="zoneColor" value="#${zone.HexColor}">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  // Add modal to document if it doesn't exist
+  if (!document.getElementById("editZoneModal")) {
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+  }
+
+  // Show modal
+  const modal = document.getElementById("editZoneModal");
+  modal.style.display = "block";
+
+  document.getElementById("editZoneForm").onsubmit = (e) => {
+    e.preventDefault();
+
+    const updatedZone = {
+      Name: document.getElementById("zoneName").value,
+      Radius: parseFloat(document.getElementById("zoneRadius").value),
+      HexColor: document.getElementById("zoneColor").value.substring(1), // Remove #
+      Latitude: zone.Latitude,
+      Longitude: zone.Longitude,
+    };
+
+    fetch(`http://localhost:8000/disasterzone/update/${zone.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedZone),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Close modal
+        modal.style.display = "none";
+
+        // If radius changed, check for new schools
+        if (updatedZone.Radius !== zone.Radius) {
+          const center = { lat: zone.Latitude, lng: zone.Longitude };
+          const radiusInMeters = updatedZone.Radius * 1609.34; // Convert miles to meters
+          fetchSchoolsAndCreateShelters(center, radiusInMeters, zone.id);
+        }
+
+        // Refresh the map
+        fetchDisasterZones();
+
+        alert("Disaster zone updated successfully");
+      })
+      .catch((error) => {
+        console.error("Error updating disaster zone:", error);
+        alert("Failed to update disaster zone. Please try again.");
+      });
+  };
+}
+
+// Add CSS for the buttons and modal
+const styles = `
+  .btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  #editZoneModal .modal-content {
+    width: 400px;
+    padding: 20px;
+  }
+
+  #editZoneModal input {
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+  }
+
+  #editZoneModal label {
+    font-weight: bold;
+  }
+`;
+
+// Add styles to document
+if (!document.getElementById("adminStyles")) {
+  const styleSheet = document.createElement("style");
+  styleSheet.id = "adminStyles";
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
 }
 
 window.initMap = initMap;
