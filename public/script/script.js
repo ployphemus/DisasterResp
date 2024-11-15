@@ -255,3 +255,10 @@ function displayWildfireDataOnMap(wildfireData) {
     }
   });
 }
+
+window.initMap = initMap;
+
+window.onload = () => {
+  console.log("Page is fully loaded");
+  initMap();
+};
