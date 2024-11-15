@@ -55,16 +55,21 @@ body {
 .container {
     margin: auto;
     display: flex;
-    width: 65vw;
+    width: 75vw;
     height: 525px; /* Full viewport height */
 }
 
 #map {
-    height: 492px;
+    height: 72vh;
     width: 80%;
     margin: 20px auto;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.left-side {
+    padding-right: 15px;
+    margin: 20px auto;
 }
 
 /* Sidebar for flood stage monitoring */
@@ -90,40 +95,69 @@ body {
     padding: 0;
 }
 
-#flood-list li {
+.tab-container {
+    display: flex;
+    justify-content: space-between;
+    background-color: rgba(0,0,0,0.83);
+    border-bottom: 1px solid #ccc;
+}
+
+/* Individual tab button */
+.tab {
+    width: 50%;
+    padding: 10px;
+    cursor: pointer;
+    text-align: center;
+    background-color: rgba(0,0,0,0.83);
+    color: white;
+    border: none;
+    outline: none;
+}
+
+/* Active tab */
+.tab.active {
+    background-color: #7f0338;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Wildfire and flood list style */
+#flood-list li, #wildfire-list li {
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    cursor: pointer; /* Pointer cursor for clickable items */
+    cursor: pointer;
+    background-color: #f8f9fa; /* Light background to differentiate items */
 }
 
-/* Background colors based on severity */
-#flood-list li.green {
-    background-color: #d4edda; /* Light green */
+/* Maintain the color scheme for wildfire/flood levels */
+#flood-list li.green, #wildfire-list li.green {
+    background-color: #d4edda;
 }
 
-#flood-list li.yellow {
-    background-color: #fff3cd; /* Light yellow */
+#flood-list li.yellow, #wildfire-list li.yellow {
+    background-color: #fff3cd;
 }
 
-#flood-list li.orange {
-    background-color: #ffe5b5; /* Light orange */
+#flood-list li.orange, #wildfire-list li.orange {
+    background-color: #ffe5b5;
 }
 
-#flood-list li.red {
-    background-color: #f8d7da; /* Light red */
+#flood-list li.red, #wildfire-list li.red {
+    background-color: #f8d7da;
 }
 
 .logo {
     padding-left: 20px;
     padding-bottom: 5px;
 }
-
-/*.bg_img {
-    
-}
-*/
 
 .main {
     flex: 70%;
@@ -155,6 +189,7 @@ button:hover {
 }
 
 #about{
+    padding-top: 200px;
     width: 75%;
     align-self: center;
     text-align: center;
@@ -172,6 +207,12 @@ button:hover {
     padding-top: 100px;
 }
 
-.fema {
-    color: blue;
+.row {
+    text-align: center;
+}
+
+.links {
+    justify-content: center;
+    display: flex;
+    padding-top: 20px;
 }

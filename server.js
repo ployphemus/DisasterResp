@@ -20,7 +20,6 @@ const { router: databaseRouter } = require("./models/database");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const session = require("express-session");
-
 // const upload = multer;
 
 const app = express();
@@ -44,6 +43,7 @@ const disasterRouter = require("./routes/disaster.route");
 const disasterZoneRouter = require("./routes/disasterzone.route");
 const notificationsRouter = require("./routes/notifications.route");
 const notificationsController = require("./controllers/notifications.controller");
+const shelterModel = require("./models/shelter.model");
 
 notificationsController.setIo(io);
 
@@ -65,8 +65,90 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 io.on("connection", (socket) => {
-  console.log("New client connected");
-  socket.on("disconnect", () => console.log("Client disconnected"));
+  console.log("Client connected");
+
+  // Add a variable to track user's current shelter
+  let currentShelterId = null;
+
+  // Handle user location updates for shelter capacity
+  socket.on("user-at-shelter", async (data) => {
+    try {
+      const shelter = await shelterModel.getShelterById(data.shelterId);
+      if (shelter) {
+        // Store the shelter ID for this socket
+        currentShelterId = data.shelterId;
+
+        // Increment current capacity if not at maximum
+        if (shelter.Current_Capacity < shelter.Maximum_Capacity) {
+          const newCapacity = shelter.Current_Capacity + 1;
+          await shelterModel.updateShelterCapByID([
+            newCapacity,
+            data.shelterId,
+          ]);
+
+          // Broadcast updated capacity to all clients
+          io.emit("shelter-capacity-update", {
+            shelterId: data.shelterId,
+            currentCapacity: newCapacity,
+            maximumCapacity: shelter.Maximum_Capacity,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error updating shelter capacity:", error);
+    }
+  });
+
+  // Handle user leaving shelter
+  socket.on("user-left-shelter", async (data) => {
+    try {
+      if (currentShelterId) {
+        const shelter = await shelterModel.getShelterById(currentShelterId);
+        if (shelter && shelter.Current_Capacity > 0) {
+          const newCapacity = shelter.Current_Capacity - 1;
+          await shelterModel.updateShelterCapByID([
+            newCapacity,
+            currentShelterId,
+          ]);
+
+          // Broadcast updated capacity to all clients
+          io.emit("shelter-capacity-update", {
+            shelterId: currentShelterId,
+            currentCapacity: newCapacity,
+            maximumCapacity: shelter.Maximum_Capacity,
+          });
+        }
+        currentShelterId = null;
+      }
+    } catch (error) {
+      console.error("Error updating shelter capacity on leave:", error);
+    }
+  });
+
+  socket.on("disconnect", async () => {
+    console.log("Client disconnected");
+    try {
+      if (currentShelterId) {
+        const shelter = await shelterModel.getShelterById(currentShelterId);
+        if (shelter && shelter.Current_Capacity > 0) {
+          const newCapacity = shelter.Current_Capacity - 1;
+          await shelterModel.updateShelterCapByID([
+            newCapacity,
+            currentShelterId,
+          ]);
+
+          // Broadcast updated capacity to all clients
+          io.emit("shelter-capacity-update", {
+            shelterId: currentShelterId,
+            currentCapacity: newCapacity,
+            maximumCapacity: shelter.Maximum_Capacity,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error updating shelter capacity on disconnect:", error);
+    }
+  });
 });
 
 /*

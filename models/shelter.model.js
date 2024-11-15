@@ -38,6 +38,39 @@ async function getShelterById(id) {
 }
 
 /**
+ * This function getShelterLocationById() fetches the location of a shelter by their ID from the database.
+ * @param {*} id The ID of the shelter to fetch
+ * @returns {Promise<Object>} Returns a promise that resolves to the location of the shelter with the given ID
+ */
+async function getShelterLocationById(id) {
+  const sql = "SELECT Latitude, Longitude FROM shelters WHERE id = ?";
+  try {
+    const shelter = await db.get(sql, [id]);
+    return shelter;
+  } catch (err) {
+    console.error("Error fetching shelter:", err);
+    throw err;
+  }
+}
+
+/**
+ * This function getShelterLocationAndAddressById() fetches the location and address of a shelter by their ID from the database.
+ * @param {*} id The ID of the shelter to fetch
+ * @returns {Promise<Object>} Returns a promise that resolves to the location and address of the shelter with the given ID
+ */
+async function getShelterLocationAndAddressById(id) {
+  const sql =
+    "SELECT Latitude, Longitude, Shelter_address FROM shelters WHERE id = ?";
+  try {
+    const shelter = await db.get(sql, [id]);
+    return shelter;
+  } catch (err) {
+    console.error("Error fetching shelter:", err);
+    throw err;
+  }
+}
+
+/**
  * This function createShelter() creates a new shelter in the database.
  * @param {*} params The parameters of the shelter to create
  * @returns {Promise<Object>} Returns a promise that resolves to the shelter that was created
@@ -130,6 +163,8 @@ async function getAllSheltersAndDisasterZones() {
 module.exports = {
   getAll,
   getShelterById,
+  getShelterLocationById,
+  getShelterLocationAndAddressById,
   createShelter,
   updateShelterCapByID,
   updateShelterByID,

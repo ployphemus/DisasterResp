@@ -13,7 +13,10 @@ app.use(express.json());
 
 const model = require("../models/user.model");
 const shelterModel = require("../models/shelter.model");
+const notifsModel = require("../models/notifications.model");
+const disasterzoneModel = require("../models/disasterzone.model");
 const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 const nodemailer = require("../middleware/nodemailer");
 
 /**
@@ -72,6 +75,20 @@ async function getUserById(req, res, next) {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch user" });
+    console.error(err);
+    next(err);
+  }
+}
+
+async function getUserLocationById(req, res, next) {
+  console.log("getUserLocationById called");
+  try {
+    const userId = req.params.id;
+    const location = await model.getUserLocationById(userId);
+    console.log("Location fetched from getUserLocationById:", location);
+    res.json(location);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user location" });
     console.error(err);
     next(err);
   }
@@ -152,12 +169,17 @@ async function initiatePasswordReset(req, res, next) {
     let email = req.body.Email;
     const user = await model.getUserByEmail(email);
     console.log("User fetched from getUserByEmail:", user);
+
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      if (req.accepts("html")) {
+        req.flash("error", "No account found with that email address");
+        return res.redirect("/auth/forgot-password");
+      }
+      return res.status(404).json({ error: "User not found" });
     }
 
     const token = crypto.randomBytes(20).toString("hex");
-    const expires = new Date(Date.now() + 3600000);
+    const expires = new Date(Date.now() + 3600000); // 1 hour from now
 
     const params = [token, expires, user.id];
     await model.saveResetToken(params);
@@ -173,14 +195,23 @@ async function initiatePasswordReset(req, res, next) {
     };
     await nodemailer.sendEmailFunc(mailOptions);
 
+    console.log("Password reset email sent to:", user.Email);
+
     if (req.accepts("html")) {
-      res.redirect("/auth/login");
-    } else {
-      res.status(200).json({ message: "Password reset email sent" });
+      req.flash(
+        "success",
+        "Password reset email sent. Please check your inbox."
+      );
+      return res.redirect("/auth/login");
     }
+    return res.status(200).json({ message: "Password reset email sent" });
   } catch (err) {
-    res.status(500).json({ error: "Failed to initiate password reset" });
-    console.error(err);
+    console.error("Failed to initiate password reset:", err);
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to process password reset request");
+      return res.redirect("/auth/forgot-password");
+    }
+    return res.status(500).json({ error: "Failed to initiate password reset" });
     next(err);
   }
 }
@@ -195,25 +226,56 @@ async function resetPassword(req, res, next) {
   console.log("resetPassword called");
 
   try {
-    const token = req.body.token;
+    const token = req.body.token || req.params.token; // Handle both POST and route parameter
     const password = req.body.Password;
-    const user = await model.getUserByResetToken(token);
-    console.log("User fetched from getUserByResetToken:", user);
-    if (!user) {
-      res.status(404).json({ error: "User not found" });
+
+    console.log("Reset attempt with token:", token);
+
+    if (!token || !password) {
+      console.log("Missing token or password");
+      if (req.accepts("html")) {
+        req.flash("error", "Invalid password reset request");
+        return res.redirect("/auth/login");
+      }
+      return res.status(400).json({ error: "Token and password are required" });
     }
 
+    const user = await model.getUserByResetToken(token);
+    console.log("User fetched from getUserByResetToken:", user);
+
+    if (!user) {
+      console.log("No user found with valid reset token");
+      if (req.accepts("html")) {
+        req.flash("error", "Invalid or expired password reset token");
+        return res.redirect("/auth/login");
+      }
+      return res.status(404).json({ error: "Invalid or expired reset token" });
+    }
+
+    // Add logging for password update attempt
+    console.log("Attempting to update password for user:", user.id);
+
+    // Update password and clear reset token
     await model.updateUserPasswordById([password, user.id]);
     await model.clearResetToken(user.id);
 
+    console.log("Password successfully reset for user:", user.id);
+
     if (req.accepts("html")) {
-      res.redirect("/auth/login");
-    } else {
-      res.status(200).json({ message: "Password reset successful" });
+      req.flash(
+        "success",
+        "Password successfully reset. Please login with your new password."
+      );
+      return res.redirect("/auth/login");
     }
+    return res.status(200).json({ message: "Password reset successful" });
   } catch (err) {
-    res.status(500).json({ error: "Failed to reset password" });
-    console.error(err);
+    console.error("Failed to reset password:", err);
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to reset password");
+      return res.redirect("/auth/login");
+    }
+    return res.status(500).json({ error: "Failed to reset password" });
     next(err);
   }
 }
@@ -290,18 +352,163 @@ async function updateUserLocationById(req, res, next) {
   }
 }
 
+/**
+ * This function updateUserPasswordById() is used to update a user's password by their ID in the database by calling the updateUserPasswordById() function from the user.model.js file
+ * @param {*} req The request object containing the parameters of the user to update from req.body & req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
 async function updateUserPasswordById(req, res, next) {
   console.log("updateUserPasswordById called");
   try {
     let userId = req.params.id;
-    let password = req.body.Password;
+    let currentPassword = req.body.password;
+    let newPassword = req.body.new_password;
 
-    const params = [password, userId];
-    const user = await model.updateUserPasswordById(params);
-    console.log("User password updated:", user);
-    res.json(user);
+    // Log the inputs to debug
+    console.log("User ID:", userId);
+
+    // Fetch the user from the database
+    const user = await model.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Log the user object to debug
+    console.log("User fetched from DB:", user);
+
+    // Verify the provided current password
+    const isPasswordCorrect = await bcrypt.compare(
+      currentPassword,
+      user.Password
+    ); // Use the correct case
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ error: "Incorrect current password" });
+    }
+
+    // Call the model function to update the password
+    const params = [newPassword, userId];
+    const updatedUser = await model.updateUserPasswordById(params);
+    if (req.accepts("html")) {
+      res.redirect("/auth/login");
+    } else {
+      res.json(updatedUser);
+    }
   } catch (err) {
     res.status(500).json({ error: "Failed to update user password" });
+    console.error(err);
+    next(err);
+  }
+}
+
+/**
+ * This function initiateEmailChange() sends an email to verify the correct user in a similar manner to initiatePasswordChange()
+ * @param {*} req The request object containing the email of the user to reset the email for from req.body
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function initiateEmailChange(req, res, next) {
+  console.log("initiateEmailChange called");
+  try {
+    let email = req.body.Email;
+    const user = await model.getUserByEmail(email);
+    console.log("User fetched from getUserByEmail:", user);
+
+    if (!user) {
+      if (req.accepts("html")) {
+        req.flash("error", "No account found with that email address");
+        return res.redirect("/auth/forgot-password");
+      }
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const token = crypto.randomBytes(20).toString("hex");
+    const expires = new Date(Date.now() + 3600000); // 1 hour from now
+
+    const params = [token, expires, user.id];
+    await model.saveResetToken(params);
+
+    // Send email change email
+    const resetUrl = `http://localhost:8000/auth/new-email/${token}`;
+    const mailOptions = {
+      from: process.env.OAUTH_EMAIL_USER,
+      to: user.Email,
+      subject: "Change Email Request",
+      text: `Please use the following link to change your email: ${resetUrl}`,
+      html: `<p>Please use the following link to change your email:</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
+    };
+    await nodemailer.sendEmailFunc(mailOptions);
+
+    console.log("Change email message sent to:", user.Email);
+
+    if (req.accepts("html")) {
+      req.flash(
+        "success",
+        "Change email message sent. Please check your inbox."
+      );
+      return res.redirect("/auth/login");
+    }
+    return res.status(200).json({ message: "Change email message sent" });
+  } catch (err) {
+    console.error("Failed to initiate email change:", err);
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to process change email request");
+      return res.redirect("/auth/forgot-password");
+    }
+    return res.status(500).json({ error: "Failed to initiate email change" });
+    next(err);
+  }
+}
+
+/**
+ * This function updateUserEmailById() is used to update a user's email by their ID in the database by calling the updateUserEmailById() function from the user.model.js file
+ * @param {*} req The request object containing the parameters of the user to update from req.body & req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function updateUserEmailById(req, res, next) {
+  console.log("updateUserEmailById called");
+  try {
+    let userId = req.params.id;
+    let currentEmail = req.body.old_email;
+    let newEmail = req.body.new_email;
+    let password = req.body.password;
+
+    // Log the inputs to debug
+    console.log("User ID:", userId);
+    console.log("Current Email:", currentEmail);
+    console.log("New Email:", newEmail);
+
+    // Fetch the user from the database
+    const user = await model.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Log the user object to debug
+    console.log("User fetched from DB:", user);
+
+    // Verify the provided password
+    const isPasswordCorrect = await bcrypt.compare(password, user.Password); // Use the correct case
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ error: "Incorrect password" });
+    }
+
+    // Proceed to update the email address
+    const params = [newEmail, userId];
+    const updatedUser = await model.updateUserEmailById(params);
+    if (req.accepts("html")) {
+      const referer = req.get("referer");
+      if (referer) {
+        res.redirect(referer);
+      } else {
+        res.redirect("/auth/login");
+      }
+    } else {
+      res.json(updatedUser);
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update user email" });
     console.error(err);
     next(err);
   }
@@ -340,6 +547,71 @@ async function deleteUserById(req, res, next) {
   }
 }
 
+/**
+ * This function deleteUserById2() is used to delete a user by their ID in the database by calling the deleteUserById() function from the user.model.js file
+ * @param {*} req The request object containing the params of the user to delete from req.params
+ * @param {*} res The response object
+ * @param {*} next The next middleware function
+ */
+async function deleteUserById2(req, res, next) {
+  console.log("deleteUserById2 called");
+  try {
+    const userId = req.params.id;
+    const password = req.body.password;
+
+    // Fetch user to verify password
+    const user = await model.getUserById(userId);
+    if (!user) {
+      if (req.accepts("html")) {
+        req.flash("error", "User not found");
+        return res.redirect("/auth/login");
+      }
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Verify the provided password
+    const isPasswordCorrect = await bcrypt.compare(password, user.Password);
+    if (!isPasswordCorrect) {
+      if (req.accepts("html")) {
+        req.flash("error", "Incorrect password");
+        return res.redirect("/auth/login");
+      }
+      return res.status(401).json({ error: "Incorrect password" });
+    }
+
+    // If password matches, proceed with deletion
+    const deletedUser = await model.deleteUserById(userId);
+    console.log("User deleted:", deletedUser);
+
+    if (req.accepts("html")) {
+      // Set flash message before destroying session
+      req.flash("success", "Account successfully deleted");
+
+      // Now destroy the session
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+        }
+        res.redirect("/auth/register");
+      });
+    } else {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+        }
+        res.status(200).json({ message: "Account successfully deleted" });
+      });
+    }
+  } catch (err) {
+    console.error("Failed to delete user:", err);
+    if (req.accepts("html")) {
+      req.flash("error", "Failed to delete account");
+      return res.redirect("/auth/login");
+    }
+    res.status(500).json({ error: "Failed to delete account" });
+    next(err);
+  }
+}
 /**
  * This function getUserByEmail() is used to get a user by their email from the database by calling the getUserByEmail() function from the user.model.js file
  * @param {*} req The request object containing the email of the user to get from req.params
@@ -495,8 +767,16 @@ async function getUserResources(req, res, next) {
   }
 }
 
-async function getUserAccountPage(req, res, next) {
-  console.log("getUserAccountPage called");
+/**
+ * This function getAdminAlertPage() is used to render the admin alert page
+ * @param {*} req The request
+ * @param {*} res The response
+ * @param {*} next The next middleware function
+ */
+async function getAdminAlertPage(req, res, next) {
+  const notifs = await notifsModel.getAllNotifsWithDisasterZone();
+  const disasterzones = await disasterzoneModel.getAll();
+  console.log("getAdminAlertPage called");
   try {
     let loggedIn = req.user ? true : false;
     let user_type = null;
@@ -509,15 +789,17 @@ async function getUserAccountPage(req, res, next) {
     console.log("User type:", user_type);
     console.log("User ID:", user_id);
 
-    res.render("user/user_account", {
+    res.render("admin/admin-alert", {
+      notifs: notifs,
+      disasterzones: disasterzones,
       loggedIn: loggedIn,
       user_type: user_type,
       user_id: user_id,
-      title: "User Account",
+      title: "Admin Alert",
       message: req.flash("error")[0],
     });
   } catch (err) {
-    res.status(500).json({ error: "Failed to render user account" });
+    res.status(500).json({ error: "Failed to render admin alert" });
     console.error(err);
     next(err);
   }
@@ -526,12 +808,14 @@ async function getUserAccountPage(req, res, next) {
 module.exports = {
   getAllUsers,
   getUserById,
+  getUserLocationById,
   createUser,
   createNewUser,
   updateUserById,
   updateUserLocationById,
   updateUserPasswordById,
   deleteUserById,
+  deleteUserById2,
   getUserByEmail,
   getUserType,
   initiatePasswordReset,
@@ -539,5 +823,7 @@ module.exports = {
   getAdminDashboard,
   getAdminShelters,
   getUserResources,
-  getUserAccountPage,
+  getAdminAlertPage,
+  initiateEmailChange,
+  updateUserEmailById,
 };

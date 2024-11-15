@@ -22,6 +22,28 @@ async function getAllNotifs() {
 }
 
 /**
+ * This function getAllNotifsWithDisasterZone() fetches all notifications with disaster zone from the database.
+ * @returns  {Promise<Array>} Returns a promise that resolves to an array of all notifications with disaster zone in the database
+ */
+async function getAllNotifsWithDisasterZone() {
+  const sql = `SELECT 
+      n.id AS notification_id,
+      n.Message,
+      n.admin_id,
+      n.disasterzone_id,
+	  dz.name as disasterzone_name
+    FROM notifications n
+    JOIN disasterzones dz ON n.disasterzone_id = dz.id`;
+  try {
+    const notifications = await db.all(sql);
+    return notifications;
+  } catch (err) {
+    console.error("Error fetching notifications:", err);
+    throw err;
+  }
+}
+
+/**
  * This function getAllNotifsUsers() fetches all notifications_users from the database.
  * @returns {Promise<Array>} Returns a promise that resolves to an array of all notifications_users in the database
  */
@@ -262,6 +284,7 @@ async function deleteNotificationById(id) {
 
 module.exports = {
   getAllNotifs,
+  getAllNotifsWithDisasterZone,
   getAllNotifsUsers,
   getAllNotifsByAdminId,
   getAllNotifsByNotifIdWithUsers,

@@ -17,23 +17,24 @@
   <body style="background-color: WHITE" onload="initMap()">
     <!-- Nav-bar.EJS-->
     <%- include('../partials/nav-bar') %>
-  <div class="container">
-    <!-- Content -->
-    <div class="row">
-      <div class="left-side">
-        <div class="shelter-info">Shelter Locations & Information</div>
+
+    <div class="container">
+      <div class="row-container">
+        <div class="left-side">
+          <img src="/site_art/shelter_legend.jpg" alt="shelter_legend">
+        </div>
+        <div class="main" id="map">
+          <!-- #map container here -->
+        </div>
       </div>
     </div>
-
-    <!-- The div element where the map will be displayed -->
-    <div id="map"></div>
 
     <!-- Table to display nearby schools -->
     <h2>Nearby Facility Details</h2>
     <table id="schools-table">
       <thead>
         <tr>
-          <th>School Name</th>
+          <th>Shelter Name</th>
           <th>Address</th>
           <th>Action</th>
           <th>Distance</th>

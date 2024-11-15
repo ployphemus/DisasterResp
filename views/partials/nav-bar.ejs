@@ -6,7 +6,7 @@
   <div class="nav-right">
     <% if (loggedIn) { %>
     <button><a href="/auth/logout">Logout</a></button>
-    <button><a href="/users/user_account">User Page</a></button>
+    <button><a href="/auth/user-account">User Page</a></button>
     <% } else { %>
     <button><a href="/auth/login">Log in</a></button>
     <% } %>
@@ -19,6 +19,7 @@
     <% if (user_type === 'ADMIN') { %>
     <li><a href="/users/all">User Management</a></li>
     <li><a href="/users/admin/shelters">Admin Shelters</a></li>
+    <li><a href="/users/admin/alerts">Admin Alerts</a></li>
     <% } %>
     <li><a href="/users/resources">Resources</a></li>
     <li><a href="/shelters/allSheltersAndDisasterZones">Shelters</a></li>

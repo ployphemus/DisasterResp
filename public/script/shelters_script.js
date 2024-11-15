@@ -1,23 +1,32 @@
 let map;
 let service;
-let markers = [];
+let markers = []; // For schools/places
+let shelterMarkers = []; // For official shelters
 let userMarker;
 let circles = [];
 let infoWindow;
 let smallCircle;
+let shelterIcon;
+let existingShelterLocations = new Set(); // Track existing shelter locations
+let sheltersLoaded = false; // Flag to track if shelters have been loaded
 
 function initMap() {
-
   console.log("Map is initializing...");
   const userShelterPage = document.getElementById("schools-table");
   const adminShelterPage = document.getElementById("shelter-table");
   console.log("The user shelter page is:", userShelterPage);
   console.log("The admin shelter page is:", adminShelterPage);
 
+  shelterIcon = {
+    url: "/shelter.png",
+    scaledSize: new google.maps.Size(32, 32),
+    origin: new google.maps.Point(0, 0),
+    anchor: new google.maps.Point(16, 32),
+  };
+
   const center = { lat: 36.044659, lng: -79.766235 };
   map = new google.maps.Map(document.getElementById("map"), {
     zoom: 12,
-
     center: center,
   });
 
@@ -43,21 +52,7 @@ function initMap() {
 
         service = new google.maps.places.PlacesService(map);
 
-        if (userShelterPage) {
-          console.log("Setting up user shelter page features");
-          searchNearbySchools(userLocation);
-
-          google.maps.event.addListener(map, "dragend", () => {
-            const newCenter = map.getCenter();
-            searchNearbySchools(newCenter.toJSON());
-          });
-
-          google.maps.event.addListener(map, "zoom_changed", () => {
-            const newCenter = map.getCenter();
-            searchNearbySchools(newCenter.toJSON());
-          });
-        }
-
+        initializeMapFeatures(userLocation, userShelterPage);
         fetchDisasterZones();
 
         if (adminShelterPage) {
@@ -75,6 +70,29 @@ function initMap() {
     );
   } else {
     handleLocationError(false);
+  }
+}
+
+async function initializeMapFeatures(userLocation, userShelterPage) {
+  // Fetch shelters only if they haven't been loaded yet
+  if (!sheltersLoaded) {
+    await fetchShelters();
+    sheltersLoaded = true;
+  }
+
+  if (userShelterPage) {
+    console.log("Setting up user shelter page features");
+    searchNearbySchools(userLocation);
+
+    google.maps.event.addListener(map, "dragend", () => {
+      const newCenter = map.getCenter();
+      searchNearbySchools(newCenter.toJSON());
+    });
+
+    google.maps.event.addListener(map, "zoom_changed", () => {
+      const newCenter = map.getCenter();
+      searchNearbySchools(newCenter.toJSON());
+    });
   }
 }
 
@@ -106,6 +124,15 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return distance.toFixed(2);
 }
 
+function isExistingShelter(lat, lng) {
+  // Use a small threshold for floating-point comparison
+  const threshold = 0.0001; // Approximately 11 meters at the equator
+  return Array.from(existingShelterLocations).some(
+    (loc) =>
+      Math.abs(loc.lat - lat) < threshold && Math.abs(loc.lng - lng) < threshold
+  );
+}
+
 function searchNearbySchools(location) {
   const userShelterPage = document.getElementById("schools-table");
 
@@ -115,7 +142,7 @@ function searchNearbySchools(location) {
   }
 
   if (!userShelterPage) {
-    return; // Don't search for schools if not on user shelter page
+    return;
   }
 
   const request = {
@@ -128,10 +155,29 @@ function searchNearbySchools(location) {
     if (status === google.maps.places.PlacesServiceStatus.OK) {
       clearMarkers();
       clearTable();
-      for (let i = 0; i < results.length; i++) {
-        createMarker(results[i]);
-        addSchoolToTable(results[i], location);
-      }
+
+      const schoolsWithDistance = results.map((school) => {
+        const distance = calculateDistance(
+          location.lat,
+          location.lng,
+          school.geometry.location.lat(),
+          school.geometry.location.lng()
+        );
+        return { school, distance };
+      });
+
+      schoolsWithDistance.sort((a, b) => a.distance - b.distance);
+
+      schoolsWithDistance.forEach((entry) => {
+        const lat = entry.school.geometry.location.lat();
+        const lng = entry.school.geometry.location.lng();
+
+        // Only create a regular marker if it's not an existing shelter
+        if (!isExistingShelter(lat, lng)) {
+          createMarker(entry.school);
+        }
+        addSchoolToTable(entry.school, location, entry.distance);
+      });
     } else {
       console.warn("Places search failed:", status);
     }
@@ -141,6 +187,14 @@ function searchNearbySchools(location) {
 function createMarker(place) {
   const userShelterPage = document.getElementById("schools-table");
   const adminShelterPage = document.getElementById("shelter-table");
+
+  const lat = place.geometry.location.lat();
+  const lng = place.geometry.location.lng();
+
+  // Check if this location is already a shelter
+  if (isExistingShelter(lat, lng)) {
+    return; // Skip creating a new marker
+  }
 
   const marker = new google.maps.Marker({
     map: map,
@@ -191,7 +245,7 @@ async function saveShelter(name, latitude, longitude, capacity) {
   }
 }
 
-function addSchoolToTable(school, userLocation) {
+function addSchoolToTable(school, userLocation, distance) {
   const userShelterPage = document.getElementById("schools-table");
   if (!userShelterPage) return;
 
@@ -218,12 +272,6 @@ function addSchoolToTable(school, userLocation) {
   actionCell.appendChild(navigateButton);
   row.appendChild(actionCell);
 
-  const distance = calculateDistance(
-    userLocation.lat,
-    userLocation.lng,
-    school.geometry.location.lat(),
-    school.geometry.location.lng()
-  );
   const distanceCell = document.createElement("td");
   distanceCell.textContent = `${distance} miles`;
   row.appendChild(distanceCell);
@@ -236,6 +284,14 @@ function clearMarkers() {
     markers[i].setMap(null);
   }
   markers = [];
+}
+
+// Add this function if you need to clear shelter markers separately
+function clearShelterMarkers() {
+  for (let i = 0; i < shelterMarkers.length; i++) {
+    shelterMarkers[i].setMap(null);
+  }
+  shelterMarkers = [];
 }
 
 function clearTable() {
@@ -296,36 +352,46 @@ function fetchDisasterZones() {
     .catch((error) => console.error("Error fetching disaster zones:", error));
 }
 
-function fetchShelters() {
-  fetch("http://localhost:8000/shelters/all")
-    .then((response) => response.json())
-    .then((data) => {
-      data.forEach((shelter) => {
-        const marker = new google.maps.Marker({
-          position: { lat: shelter.Latitude, lng: shelter.Longitude },
-          map: map,
-          title: shelter.Name,
-          icon: {
-            url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-          },
-        });
+async function fetchShelters() {
+  try {
+    const response = await fetch("http://localhost:8000/shelters/all");
+    const data = await response.json();
 
-        google.maps.event.addListener(marker, "click", () => {
-          infoWindow.setContent(
-            `<div><strong>${shelter.Name}</strong>
-              <br>Disaster Zone: ${shelter.disaster_name || "N/A"}
-              <br>Capacity: ${shelter.Maximum_Capacity}
-              <br>Current Capacity: ${shelter.Current_Capacity}
-              <br>Address: ${shelter.Shelter_address || "N/A"}</div>`
-          );
-          infoWindow.setPosition(marker.getPosition());
-          infoWindow.open(map);
-        });
+    // Clear existing shelter locations and markers
+    existingShelterLocations.clear();
+    clearShelterMarkers();
 
-        markers.push(marker);
+    data.forEach((shelter) => {
+      // Add shelter location to Set
+      existingShelterLocations.add({
+        lat: shelter.Latitude,
+        lng: shelter.Longitude,
       });
-    })
-    .catch((error) => console.error("Error fetching shelters:", error));
+
+      const marker = new google.maps.Marker({
+        position: { lat: shelter.Latitude, lng: shelter.Longitude },
+        map: map,
+        title: shelter.Name,
+        icon: shelterIcon,
+      });
+
+      google.maps.event.addListener(marker, "click", () => {
+        infoWindow.setContent(
+          `<div><strong>${shelter.Name}</strong>
+            <br>Disaster Zone: ${shelter.disaster_name || "N/A"}
+            <br>Capacity: ${shelter.Maximum_Capacity}
+            <br>Current Capacity: ${shelter.Current_Capacity}
+            <br>Address: ${shelter.Shelter_address || "N/A"}</div>`
+        );
+        infoWindow.setPosition(marker.getPosition());
+        infoWindow.open(map);
+      });
+
+      shelterMarkers.push(marker);
+    });
+  } catch (error) {
+    console.error("Error fetching shelters:", error);
+  }
 }
 
 window.initMap = initMap;

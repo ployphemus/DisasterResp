@@ -16,10 +16,23 @@ router.get(
   controller.getAllSheltersAndDisasterZones,
   authMiddleware.extractUserInfo
 );
+router.get("/getlocation/:id", controller.getShelterLocationById);
+router.get(
+  "/getlocationandaddress/:id",
+  controller.getShelterLocationAndAddressById
+);
 router.get("/:id", controller.getShelterById);
-router.post("/createShelter", controller.createShelter);
+router.post("/createShelter", authMiddleware.isAdmin, controller.createShelter);
 router.put("/updateShelterCapByID/:id", controller.updateShelterCapByID);
-router.put("/updateShelterByID/:id", controller.updateShelterByID);
-router.delete("/deleteShelterByID/:id", controller.deleteShelterByID);
+router.put(
+  "/updateShelterByID/:id",
+  authMiddleware.isAdmin,
+  controller.updateShelterByID
+);
+router.delete(
+  "/deleteShelterByID/:id",
+  authMiddleware.isAdmin,
+  controller.deleteShelterByID
+);
 
 module.exports = router;

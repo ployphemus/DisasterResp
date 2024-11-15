@@ -41,6 +41,17 @@ async function getUserById(id) {
   }
 }
 
+async function getUserLocationById(id) {
+  const sql = "SELECT Latitude, Longitude FROM users WHERE id = ?";
+  try {
+    const location = await db.get(sql, [id]);
+    return location;
+  } catch (err) {
+    console.error("Error fetching user location by ID:", err);
+    throw err;
+  }
+}
+
 /**
  * This function createUser() creates a new user in the database but without hashing the password.
  * @param {*} params The parameters of the user to create
@@ -116,6 +127,10 @@ async function updateUserLocationById(params) {
   }
 }
 
+/**
+ * This function updateUserPasswordById() updates the password of a user in the database.
+ * @param {*} params The parameters of the user to update
+ */
 async function updateUserPasswordById(params) {
   const sql = "UPDATE users SET Password = ? WHERE id = ?";
   bcrypt.hash(params[0], saltRounds, function (err, hashedPassword) {
@@ -127,6 +142,22 @@ async function updateUserPasswordById(params) {
       return result;
     }
   });
+}
+
+/**
+ * This function updateUserEmailById() updates the email of a user in the database.
+ * @param {*} params The parameters of the user to update
+ * @returns {Promise<Object>} Returns a promise that resolves to the user that was updated
+ */
+async function updateUserEmailById(params) {
+  const sql = "UPDATE users SET Email = ? WHERE id = ?";
+  try {
+    const result = await db.run(sql, params);
+    return result;
+  } catch (err) {
+    console.error("Error updating user email:", err);
+    throw err;
+  }
 }
 
 /**
@@ -183,10 +214,17 @@ async function getUserType(id) {
  * @returns {Promise<Object>} Returns a promise that resolves to the result of the function
  */
 async function saveResetToken(params) {
+  // Convert Date object to timestamp string for consistent storage
+  const expirationTimestamp = params[1].getTime().toString();
+
   const sql =
     "UPDATE users SET resetToken = ?, resetTokenExpiration = ? WHERE id = ?";
   try {
-    const result = await db.run(sql, params);
+    const result = await db.run(sql, [
+      params[0],
+      expirationTimestamp,
+      params[2],
+    ]);
     return result;
   } catch (err) {
     console.error("Error saving reset token:", err);
@@ -200,10 +238,17 @@ async function saveResetToken(params) {
  * @returns {Promise<Object>} Returns a promise that resolves to the user with the given reset token
  */
 async function getUserByResetToken(token) {
-  const sql =
-    "SELECT * FROM users WHERE resetToken = ? AND resetTokenExpiration > CURRENT_TIMESTAMP";
+  // Convert current timestamp to the same format as stored in the database
+  const currentTime = Date.now().toString();
+
+  const sql = `
+      SELECT * FROM users 
+      WHERE resetToken = ? 
+      AND CAST(resetTokenExpiration AS DECIMAL) > ?
+    `;
+
   try {
-    const user = await db.get(sql, [token]);
+    const user = await db.get(sql, [token, currentTime]);
     return user;
   } catch (err) {
     console.error("Error fetching user by reset token:", err);
@@ -231,6 +276,7 @@ async function clearResetToken(id) {
 module.exports = {
   getAll,
   getUserById,
+  getUserLocationById,
   createUser,
   createNewUser,
   updateUserById,
@@ -242,4 +288,5 @@ module.exports = {
   saveResetToken,
   getUserByResetToken,
   clearResetToken,
+  updateUserEmailById,
 };

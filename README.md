@@ -1,5 +1,8 @@
 ﻿# DisasterResponse
 ## Instructions
+
+!! Please download and install node.js from this link if you don't already have it set up: https://nodejs.org/en !!
+
 1. Clone the repo onto your machine
 
 2. Open the cloned repo in VS Code
@@ -19,6 +22,10 @@
 > https://localhost:8000
 
 6. Feel free to look around the webapp
+
+> Login as admin to see both user and admin pages:
+> email: a@e.com
+> pw: pass
 
 7. To shut the server down, click onto the VS Code terminal and press:
 

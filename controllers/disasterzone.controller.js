@@ -46,7 +46,7 @@ async function getAllDisasterZones(req, res, next) {
     } 
     */
 
-    console.log("Disasterzones fetched:", disasterzones);
+    //console.log("Disasterzones fetched:", disasterzones);
     res.json(disasterzones);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch disasterzones" });
