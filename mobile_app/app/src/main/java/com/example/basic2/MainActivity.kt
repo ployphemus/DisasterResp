@@ -188,7 +188,7 @@ fun AppWithLoginDialog(
         NavHost(
             navController = navController,
             startDestination = BottomNavItem.Shelters.route,
-            modifier = Modifier.padding(innerPadding) // Keep this minimal
+            modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavItem.Shelters.route) {
                 SheltersScreen(navController)
@@ -649,37 +649,57 @@ fun BottomNavigationBar(
 
 @Composable
 fun SheltersScreen(navController: NavHostController) {
+    // Avoid navigating to the same screen if already there
+    val currentRoute = navController.currentDestination?.route
     Button(onClick = {
-        navController.navigate("MainActivity")
+        if (currentRoute != BottomNavItem.Shelters.route) {
+            Log.d("Navigation", "Navigating to Shelters")
+            navController.navigate(BottomNavItem.Shelters.route)
+        }
     }) {
-        Log.d("Navigation", "Navigating to Shelters")
+        //
     }
 }
 
 @Composable
 fun FloodsScreen(navController: NavHostController) {
+    // Avoid navigating to the same screen if already there
+    val currentRoute = navController.currentDestination?.route
     Button(onClick = {
-        navController.navigate("OnlineInfo")
+        if (currentRoute != BottomNavItem.Floods.route) {
+            Log.d("Navigation", "Navigating to Floods")
+            navController.navigate(BottomNavItem.Floods.route)
+        }
     }) {
-        Log.d("Navigation", "Navigating to Floods")
+        //
     }
 }
 
 @Composable
 fun WildfiresScreen(navController: NavHostController) {
+    // Avoid navigating to the same screen if already there
+    val currentRoute = navController.currentDestination?.route
     Button(onClick = {
-        navController.navigate("WildfireScreen")
+        if (currentRoute != BottomNavItem.Wildfires.route) {
+            Log.d("Navigation", "Navigating to Wildfires")
+            navController.navigate(BottomNavItem.Wildfires.route)
+        }
     }) {
-        Log.d("Navigation", "Navigating to Wildfires")
+        //
     }
 }
 
 @Composable
 fun EarthquakesScreen(navController: NavHostController) {
+    // Avoid navigating to the same screen if already there
+    val currentRoute = navController.currentDestination?.route
     Button(onClick = {
-        navController.navigate("EQinfo")
+        if (currentRoute != BottomNavItem.Earthquakes.route) {
+            Log.d("Navigation", "Navigating to Earthquakes")
+            navController.navigate(BottomNavItem.Earthquakes.route)
+        }
     }) {
-        Log.d("Navigation", "Navigating to Earthquakes")
+        //
     }
 }
 
