@@ -20,15 +20,22 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -55,7 +62,22 @@ import com.google.gson.annotations.SerializedName
 import io.ktor.client.plugins.defaultRequest
 import kotlinx.coroutines.launch
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+
+import com.google.android.material.bottomnavigation.BottomNavigationView
+
 const val IS_DEVELOPMENT = true
+
+// Bottom nav items
+sealed class BottomNavItem(val route: String, val icon: Int, val label: String) {
+    object Shelters : BottomNavItem("MainActivity", R.drawable.baseline_cabin_24, "Shelters")
+    object Floods : BottomNavItem("OnlineInfo", R.drawable.ss_flood, "Floods")
+    object Wildfires : BottomNavItem("WildfireScreen", R.drawable.ss_fire, "Wildfires")
+    object Earthquakes : BottomNavItem("EQInfo", R.drawable.ss_quake, "Earthquakes")
+}
 
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -116,7 +138,6 @@ class MainActivity : ComponentActivity() {
 fun AppWithLoginDialog(
     navController: NavHostController,
     fusedLocationClient: FusedLocationProviderClient
-
 ) {
     var showDialog by remember { mutableStateOf(true) }
     //val context = LocalContext.current
@@ -149,6 +170,40 @@ fun AppWithLoginDialog(
             }
         }
     }
+    /*
+    // Bottom nav bar
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(
+                navController = navController,
+                items = listOf(
+                    BottomNavItem.Shelters,
+                    BottomNavItem.Floods,
+                    BottomNavItem.Wildfires,
+                    BottomNavItem.Earthquakes
+                )
+            )
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = BottomNavItem.Shelters.route,
+            modifier = Modifier.padding(innerPadding) // Keep this minimal
+        ) {
+            composable(BottomNavItem.Shelters.route) {
+                SheltersScreen(navController)
+            }
+            composable(BottomNavItem.Floods.route) {
+                FloodsScreen(navController)
+            }
+            composable(BottomNavItem.Wildfires.route) {
+                WildfiresScreen(navController)
+            }
+            composable(BottomNavItem.Earthquakes.route) {
+                EarthquakesScreen(navController)
+            }
+        }
+    }*/
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -560,6 +615,71 @@ suspend fun fetchShelters(): List<Shelter>? {
         null
     } finally {
         client.close()
+    }
+}
+
+// Structure of the bottom nav
+@Composable
+fun BottomNavigationBar(
+    navController: NavHostController,
+    items: List<BottomNavItem>
+) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    BottomNavigation {
+        items.forEach { item ->
+            BottomNavigationItem(
+                icon = { Icon(painterResource(id = item.icon), contentDescription = item.label) },
+                label = { Text(item.label) },
+                selected = currentRoute == item.route,
+                onClick = {
+                    navController.navigate(item.route) {
+                        // To avoid stack overflow issues, launch the top item only if not already selected
+                        if (currentRoute != item.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun SheltersScreen(navController: NavHostController) {
+    Button(onClick = {
+        navController.navigate("MainActivity")
+    }) {
+        Log.d("Navigation", "Navigating to Shelters")
+    }
+}
+
+@Composable
+fun FloodsScreen(navController: NavHostController) {
+    Button(onClick = {
+        navController.navigate("OnlineInfo")
+    }) {
+        Log.d("Navigation", "Navigating to Floods")
+    }
+}
+
+@Composable
+fun WildfiresScreen(navController: NavHostController) {
+    Button(onClick = {
+        navController.navigate("WildfireScreen")
+    }) {
+        Log.d("Navigation", "Navigating to Wildfires")
+    }
+}
+
+@Composable
+fun EarthquakesScreen(navController: NavHostController) {
+    Button(onClick = {
+        navController.navigate("EQinfo")
+    }) {
+        Log.d("Navigation", "Navigating to Earthquakes")
     }
 }
 
