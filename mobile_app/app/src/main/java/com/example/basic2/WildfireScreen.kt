@@ -39,7 +39,10 @@ import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WildfireScreen(navController: NavHostController) {
+fun WildfireScreen(
+    navController: NavHostController,
+    onLogout: () -> Unit
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var wildfireData by remember { mutableStateOf<List<WildfireDataItem>>(emptyList()) }
@@ -147,9 +150,9 @@ fun WildfireScreen(navController: NavHostController) {
             TopAppBar(
                 title = { Text("Active Wildfires") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Go Back")
-                    }
+                    MenuButton(
+                        onLogout = onLogout
+                    )
                 }
             )
         }

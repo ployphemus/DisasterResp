@@ -73,7 +73,7 @@ const val IS_DEVELOPMENT = true
 
 // Bottom nav items
 sealed class BottomNavItem(val route: String, val icon: Int, val label: String) {
-    object Shelters : BottomNavItem("MainActivity", R.drawable.baseline_cabin_24, "Shelters")
+    object Shelters : BottomNavItem("ShelterListScreen", R.drawable.baseline_cabin_24, "Shelters")
     object Floods : BottomNavItem("OnlineInfo", R.drawable.ss_flood, "Floods")
     object Wildfires : BottomNavItem("WildfireScreen", R.drawable.ss_fire, "Wildfires")
     object Earthquakes : BottomNavItem("EQInfo", R.drawable.ss_quake, "Earthquakes")
@@ -151,29 +151,43 @@ fun AppWithLoginDialog(
 
     if (!showDialog) {
         // Main app content
-        NavHost(navController = navController, startDestination = "ShelterListScreen") {
-            composable("ShelterListScreen") {
-                ShelterListScreen(
-                    navController = navController,
-                    fusedLocationClient = fusedLocationClient,
-                    onLogout = { showDialog = true } // Reopen login dialog
-                )
+        Box(modifier = Modifier.fillMaxSize()) {
+            // NavHost for navigation, with padding to leave space for BottomNavigationBar
+            NavHost(
+                navController = navController,
+                startDestination = "ShelterListScreen",
+                modifier = Modifier
+                    .fillMaxSize() // Take up the full screen
+                    .padding(bottom = 56.dp) // Leave space for the BottomNavigationBar
+            ) {
+                composable("ShelterListScreen") {
+                    ShelterListScreen(
+                        navController = navController,
+                        fusedLocationClient = fusedLocationClient,
+                        onLogout = { showDialog = true } //Reopen login dialog
+                    )
+                }
+                composable("OnlineInfo") {
+                    OnlineInfo(
+                        navController = navController,
+                        onLogout = { showDialog = true } //Reopen login dialog
+                    )
+                }
+                composable("EQinfo") {
+                    EQinfo(
+                        navController = navController,
+                        onLogout = { showDialog = true } //Reopen login dialog
+                    )
+                }
+                composable("WildfireScreen") {
+                    WildfireScreen(
+                        navController = navController,
+                        onLogout = { showDialog = true } //Reopen login dialog
+                    )
+                }
             }
-            composable("OnlineInfo") {
-                OnlineInfo(navController = navController)
-            }
-            composable("EQinfo") {
-                EQinfo(navController = navController)
-            }
-            composable("WildfireScreen") {
-                WildfireScreen(navController = navController)
-            }
-        }
-    }
-    /*
-    // Bottom nav bar
-    Scaffold(
-        bottomBar = {
+
+            // Bottom navigation bar placed at the bottom of the screen
             BottomNavigationBar(
                 navController = navController,
                 items = listOf(
@@ -181,29 +195,14 @@ fun AppWithLoginDialog(
                     BottomNavItem.Floods,
                     BottomNavItem.Wildfires,
                     BottomNavItem.Earthquakes
-                )
+                ),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter) // Align it to the bottom center of the screen
+                    .fillMaxWidth() // Ensure the bottom navigation bar spans the full width of the screen
+                    .height(56.dp) // Ensure consistent height for the bottom navigation bar
             )
         }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = BottomNavItem.Shelters.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(BottomNavItem.Shelters.route) {
-                SheltersScreen(navController)
-            }
-            composable(BottomNavItem.Floods.route) {
-                FloodsScreen(navController)
-            }
-            composable(BottomNavItem.Wildfires.route) {
-                WildfiresScreen(navController)
-            }
-            composable(BottomNavItem.Earthquakes.route) {
-                EarthquakesScreen(navController)
-            }
-        }
-    }*/
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -243,7 +242,7 @@ fun ShelterListScreen(
                 title = { Text("Available Shelters") },
                 navigationIcon = {
                     MenuButton(
-                        navController = navController, onLogout = onLogout
+                        onLogout = onLogout
                     )
                 }
             )
@@ -367,7 +366,7 @@ fun ShelterListItem(shelter: Shelter) {
 }
 
 @Composable
-fun MenuButton(navController: NavHostController, onLogout: () -> Unit) {
+fun MenuButton(onLogout: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
@@ -382,27 +381,6 @@ fun MenuButton(navController: NavHostController, onLogout: () -> Unit) {
         expanded = expanded,
         onDismissRequest = { expanded = false }
     ) {
-        DropdownMenuItem(
-            text = { Text("Local Flood Info") },
-            onClick = {
-                navController.navigate("OnlineInfo")
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Earthquake Info") },
-            onClick = {
-                navController.navigate("EQinfo")
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Wildfire Info") },
-            onClick = {
-                navController.navigate("WildfireScreen")
-                expanded = false
-            }
-        )
         DropdownMenuItem(
             text = { Text("Logout") },
             onClick = {
@@ -622,12 +600,17 @@ suspend fun fetchShelters(): List<Shelter>? {
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
-    items: List<BottomNavItem>
+    items: List<BottomNavItem>,
+    modifier: Modifier = Modifier
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    BottomNavigation {
+    BottomNavigation (
+        modifier = modifier,
+        backgroundColor = Color(0xFFD30000),
+        contentColor = Color.White
+    ){
         items.forEach { item ->
             BottomNavigationItem(
                 icon = { Icon(painterResource(id = item.icon), contentDescription = item.label) },
@@ -644,62 +627,6 @@ fun BottomNavigationBar(
                 }
             )
         }
-    }
-}
-
-@Composable
-fun SheltersScreen(navController: NavHostController) {
-    // Avoid navigating to the same screen if already there
-    val currentRoute = navController.currentDestination?.route
-    Button(onClick = {
-        if (currentRoute != BottomNavItem.Shelters.route) {
-            Log.d("Navigation", "Navigating to Shelters")
-            navController.navigate(BottomNavItem.Shelters.route)
-        }
-    }) {
-        //
-    }
-}
-
-@Composable
-fun FloodsScreen(navController: NavHostController) {
-    // Avoid navigating to the same screen if already there
-    val currentRoute = navController.currentDestination?.route
-    Button(onClick = {
-        if (currentRoute != BottomNavItem.Floods.route) {
-            Log.d("Navigation", "Navigating to Floods")
-            navController.navigate(BottomNavItem.Floods.route)
-        }
-    }) {
-        //
-    }
-}
-
-@Composable
-fun WildfiresScreen(navController: NavHostController) {
-    // Avoid navigating to the same screen if already there
-    val currentRoute = navController.currentDestination?.route
-    Button(onClick = {
-        if (currentRoute != BottomNavItem.Wildfires.route) {
-            Log.d("Navigation", "Navigating to Wildfires")
-            navController.navigate(BottomNavItem.Wildfires.route)
-        }
-    }) {
-        //
-    }
-}
-
-@Composable
-fun EarthquakesScreen(navController: NavHostController) {
-    // Avoid navigating to the same screen if already there
-    val currentRoute = navController.currentDestination?.route
-    Button(onClick = {
-        if (currentRoute != BottomNavItem.Earthquakes.route) {
-            Log.d("Navigation", "Navigating to Earthquakes")
-            navController.navigate(BottomNavItem.Earthquakes.route)
-        }
-    }) {
-        //
     }
 }
 
