@@ -370,32 +370,25 @@ fun MenuButton(onLogout: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    IconButton(onClick = { expanded = true }) {
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = "Menu"
-        )
-    }
-
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false }
-    ) {
-        DropdownMenuItem(
-            text = { Text("Logout") },
-            onClick = {
-                expanded = false
-                // Perform logout action
-                coroutineScope.launch {
-                    val success = performLogout()
-                    if (success) {
-                        onLogout()
-                    } else {
-                        // Handle logout failure (e.g., show a message)
-                    }
+    Button(
+        onClick = {
+            expanded = false
+            // Perform logout action
+            coroutineScope.launch {
+                val success = performLogout()
+                if (success) {
+                    onLogout()
+                } else {
+                    // Handle logout failure (e.g., show a message)
                 }
             }
-        )
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFFFD3D1), // Background color (purple)
+            contentColor = Color.White // Text color (white)
+        ),
+    ) {
+        Text(text = "Logout")
     }
 }
 
