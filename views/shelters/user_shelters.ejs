@@ -45,39 +45,9 @@
       </tbody>
     </table>
 
-    <table style="margin-top: 50px">
-      <thead>
-        <tr>
-          <th>Disaster Name</th>
-          <th>Shelter Name</th>
-          <th>Shelter Address</th>
-          <th>Occupancy</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% shelters.forEach(shelter => { %>
-        <tr>
-          <td><%= shelter.disaster_name %></td>
-          <td><%= shelter.shelter_name %></td>
-          <td><%= shelter.Shelter_address %></td>
-          <td><%= shelter.Current_Capacity %></td>
-          <td class="highlight">
-            <a
-              href="https://www.google.com/maps/dir/?api=1&destination=<%= encodeURIComponent(shelter.Shelter_address) %>"
-              target="_blank"
-            >
-              Get Directions
-            </a>
-          </td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-
     <footer class="copyright" style="color: black">
       <p>© 2024, ShelterSafe LLC</p>
     </footer>
-  </div>
+
   </body>
 </html>

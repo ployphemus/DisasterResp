@@ -158,3 +158,15 @@ a:hover {
     padding-left: 100px;
     padding-top: 100px;
 }
+
+.banner {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.banner img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
