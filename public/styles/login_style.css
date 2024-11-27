@@ -2,32 +2,59 @@ div {
     text-align: center;
 }
 
-/* Navbar base color */
-.navbar ul{
-    list-style-type: none;
-    background-color: #d30000;
-    padding: 0px;
-    margin-bottom: 10px;
-    overflow: hidden;
+/* User Buttons Styling */
+.user-buttons {
+    display: flex;
+    gap: 10px; /* Adds space between Logout and User Page buttons */
 }
 
-/* Navbar text color */
-.navbar a{
+.user-buttons button {
+    background-color: #007bff;
     color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.user-buttons button:hover {
+    background-color: #0056b3;
+}
+
+.user-buttons a {
     text-decoration: none;
-    padding: 15px;
-    display: block;
-    text-align: right;
+    color: inherit;
 }
 
-/* Navbar hover color */
-.navbar a:hover{
-    background-color: #7f0338;
+/* Main Nav Bar Links Styling */
+.navbar {
+    background-color: #444;
+    padding: 10px 20px;
 }
 
-/* Navbar text right */
-.navbar li{
-    float: right;
+.navbar ul {
+    list-style-type: none;
+    display: flex;
+    gap: 15px; /* Adds space between menu items */
+    padding: 0;
+    margin: 0;
+}
+
+.navbar li {
+    display: inline;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar a:hover {
+    background-color: #555;
 }
 
 form {
@@ -85,4 +112,92 @@ input[type=email], input[type=password] {
     margin-left: auto;
     padding-left: 100px;
     padding-top: 100px;
+}
+
+/* General Navigation Bar Styling */
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+
+}
+
+.nav .logo img {
+    height: auto;
+    max-height: 75px;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+}
+
+/* User Buttons Styling */
+.user-buttons {
+    display: flex;
+    gap: 10px; /* Adds space between Logout and User Page buttons */
+}
+
+.user-buttons button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.user-buttons button:hover {
+    background-color: #0056b3;
+}
+
+.user-buttons a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Main Nav Bar Links Styling */
+.navbar {
+    background-color: #444;
+    padding: 10px 20px;
+}
+
+.navbar ul {
+    list-style-type: none;
+    display: flex;
+    gap: 15px; /* Adds space between menu items */
+    padding: 0;
+    margin: 0;
+}
+
+.navbar li {
+    display: inline;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar a:hover {
+    background-color: #555;
+}
+
+.banner {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.banner img {
+    width: 100%;
+    height: auto;
+    display: block;
 }

@@ -53,14 +53,15 @@
           name="Message"
           required
         ></textarea>
-        <button id="sendAlert" type="submit">Send Alert</button>
+        <button id="sendAlert" type="submit" class="btn btn-danger">Send Alert</button>
       </form>
 
-      <h2>Current Alerts</h2>
-      <div id="alertsList" class="alerts-list">
-        <!-- New alerts will be added here with current date and time -->
-        <table>
-          <thead>
+      <div class="alerts-container">
+        <h2>Current Alerts</h2>
+        <div id="alertsList" class="alerts-list">
+          <!-- New alerts will be added here with current date and time -->
+          <table>
+            <thead>
             <tr>
               <th>ID</th>
               <th>Disaster Zone</th>
@@ -69,19 +70,20 @@
               <th>Message</th>
               <th>Time Stamp</th>
             </tr>
-          </thead>
-          <tbody>
+            </thead>
+            <tbody>
             <% notifs.forEach((alert) => { %>
-            <tr>
-              <td><%= alert.notification_id %></td>
-              <td><%= alert.disasterzone_name %></td>
-              <td><%= alert.disasterzone_id %></td>
-              <td><%= alert.admin_id %></td>
-              <td><%= alert.Message %></td>
-            </tr>
+              <tr>
+                <td><%= alert.notification_id %></td>
+                <td><%= alert.disasterzone_name %></td>
+                <td><%= alert.disasterzone_id %></td>
+                <td><%= alert.admin_id %></td>
+                <td><%= alert.Message %></td>
+              </tr>
             <% }); %>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
