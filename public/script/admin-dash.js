@@ -139,7 +139,6 @@ function initMap() {
             }
             throw new Error("Response was not JSON");
           })
-
           .then((data) => {
             if (!data.success) {
               throw new Error(data.error || "Operation failed");
@@ -165,16 +164,37 @@ function initMap() {
               radius: radiusInMeters,
             });
 
-            // Add an event listener to show an InfoWindow with the name and radius
+            // Store the zone data with the circle
+            circle.zoneData = {
+              id: disasterzoneId,
+              Name: name,
+              Radius: parseFloat(radius),
+              HexColor: hexColor.substring(1),
+              Latitude: clickedCoordinates.lat(),
+              Longitude: clickedCoordinates.lng(),
+            };
+
+            // Add click event with admin controls
             google.maps.event.addListener(circle, "click", () => {
-              infoWindow.setContent(
-                `<div><strong>${name}</strong><br>Radius: ${radius} miles</div>`
-              );
+              selectedDisasterZone = circle;
+
+              const content = `
+                            <div>
+                                <strong>${name}</strong><br>
+                                Radius: ${radius} miles<br>
+                                <div style="margin-top: 10px;">
+                                    <button onclick="editDisasterZone()" style="margin-right: 5px;" class="btn btn-primary">Edit Zone</button>
+                                    <button onclick="deleteDisasterZone(${disasterzoneId})" class="btn btn-danger">Delete Zone</button>
+                                </div>
+                            </div>
+                        `;
+
+              infoWindow.setContent(content);
               infoWindow.setPosition(clickedCoordinates);
               infoWindow.open(map);
             });
 
-            circles.push(circle); // Store the circle for easier access
+            circles.push(circle);
 
             // Create shelters within the disaster zone
             fetchSchoolsAndCreateShelters(
@@ -697,7 +717,7 @@ function deleteDisasterZone(zoneId) {
     )
   ) {
     fetch(`http://localhost:8000/disasterzone/delete/${zoneId}`, {
-      method: "DELETE", // Change to DELETE method
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
@@ -709,13 +729,22 @@ function deleteDisasterZone(zoneId) {
         return response.json();
       })
       .then((data) => {
+        // Clear the selected disaster zone from the map
         if (selectedDisasterZone) {
           selectedDisasterZone.setMap(null);
           circles = circles.filter((circle) => circle !== selectedDisasterZone);
         }
+
+        // Clear all existing shelter markers from the map
+        markers.forEach((marker) => marker.setMap(null));
+        markers = [];
+
         infoWindow.close();
+
+        // Fetch fresh data
         fetchDisasterZones();
         fetchShelters();
+
         alert("Disaster zone deleted successfully");
       })
       .catch((error) => {

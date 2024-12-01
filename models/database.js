@@ -20,6 +20,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.log("Database path:", dbPath);
     console.log("Connected to the SQLite database.");
 
+    // Enable foreign keys
+    db.run("PRAGMA foreign_keys = ON;", (err) => {
+      if (err) {
+        console.error("Error enabling foreign keys:", err.message);
+      } else {
+        console.log("Foreign key constraints enabled");
+      }
+    });
+
     // Automatically create the users table if it doesn't exist
     const createUsersTableSql = `
         CREATE TABLE IF NOT EXISTS users (
@@ -45,17 +54,23 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
     // Automatically create the shelters table if it doesn't exist
     const createSheltersTableSql = `
-        CREATE TABLE IF NOT EXISTS shelters (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name TEXT,
-            Latitude REAL,
-            Longitude REAL,
-            Shelter_address TEXT,
-            Maximum_Capacity INTEGER,
-            Current_Capacity INTEGER,
-            disasterzone_id INTEGER,
-            FOREIGN KEY (disasterzone_id) REFERENCES disasterzones(id) ON DELETE CASCADE
-        )`;
+      CREATE TABLE IF NOT EXISTS shelters (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        Name TEXT,
+        Latitude REAL,
+        Longitude REAL,
+        Shelter_address TEXT,
+        Maximum_Capacity INTEGER,
+        Current_Capacity INTEGER,
+        disasterzone_id INTEGER,
+        FOREIGN KEY (disasterzone_id) 
+          REFERENCES disasterzones(id) 
+          ON DELETE CASCADE
+      );
+      
+      -- Create indexes for better performance
+      CREATE INDEX IF NOT EXISTS idx_shelters_disasterzone 
+      ON shelters(disasterzone_id);`;
 
     db.run(createSheltersTableSql, (err) => {
       if (err) {
