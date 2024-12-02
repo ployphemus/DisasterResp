@@ -4,20 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Resources - ShelterSafe</title>
-    <link rel="stylesheet" href="/styles/styles.css" />
+    <link
+            rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/styles/resources_style.css" />
     <%- include('../partials/socket-script') %>
   </head>
 
   <body style="background-color: WHITE">
     <!-- Nav-bar.EJS-->
     <%- include('../partials/nav-bar') %>
-
+    <div class="banner">
+      <img src="/site_art/wildfire.jpg" alt="fire" />
+    </div>
     <!-- Content -->
     <div class="row">
       <div class="left-side">
-        <div class="banner">
-          <img src="/site_art/wildfire.jpg" alt="fire" />
-        </div>
+
         <div class="links">
           <a href="https://www.fema.gov/disaster/current" class="fema">
             <img src="/site_art/fema.jpg" alt="fema"

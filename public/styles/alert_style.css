@@ -1,7 +1,121 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
     color: BLACK;
 }
+
+/* General Navigation Bar Styling */
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ensures even spacing between logo and user buttons */
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+    margin: 0;
+}
+
+.nav .logo {
+    display: flex;
+    align-items: center; /* Vertically centers the logo */
+}
+
+.nav .logo img {
+    height: auto;
+    max-height: 75px; /* Restricts logo height */
+}
+
+.nav-right {
+    display: flex;
+    align-items: center; /* Vertically aligns the buttons */
+    margin-left: auto; /* Pushes the user buttons to the far right */
+}
+
+/* User Buttons Styling */
+.user-buttons {
+    display: flex;
+    gap: 10px; /* Adds space between buttons */
+}
+
+.user-buttons button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.user-buttons button:hover {
+    background-color: #0056b3;
+}
+
+.user-buttons a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Main Nav Bar Links Styling */
+.navbar {
+    background-color: #444;
+    padding: 10px 20px;
+    margin: 0;
+}
+
+.navbar ul {
+    list-style-type: none;
+    display: flex;
+    gap: 15px;
+    padding: 0;
+    margin: 0;
+}
+
+.navbar li {
+    display: inline;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar a:hover {
+    background-color: #555;
+}
+
+/* Additional Styling for Consistency */
+a {
+    color: BLACK;
+    text-decoration: none;
+}
+
+a:hover {
+    color: gray;
+    cursor: pointer;
+}
+
+button {
+    border: none;
+    border-radius: 5px;
+    padding: 15px 30px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #ddd;
+}
+
 
 .container {
     width: 90%;
@@ -19,19 +133,6 @@ body {
     border: 1px solid #ccc;
 }
 
-button {
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-button:hover {
-    background-color: #ddd;
-}
-
 .alerts-list {
     margin-top: 20px;
 }
@@ -41,7 +142,7 @@ button:hover {
     border: 1px solid #ccc;
     border-radius: 5px;
     margin-bottom: 10px;
-    text-align: left;
+    text-align: center;
 }
 
 .alert-item h3 {
@@ -84,77 +185,98 @@ button:hover {
     display: none; /* Hide text view in editing mode */
 }
 
-.nav {
-    height: 50px;
-    display: flex;
-    align-items: center;
-    position: relative;
-
-}
-
-.nav-right {
-    font-family: sans-serif;
-    display: flex;
-    margin-left: auto;
-}
-
-.logo {
-    padding-top: 10px;
-    padding-left: 30px;
-    padding-bottom: 5px;
-}
-
-/* Navbar base color */
-.navbar ul {
-    list-style-type: none;
-    background-color: #d30000;
-    padding: 0px;
-    margin-bottom: 10px;
-    overflow: hidden;
-}
-
-/* Navbar text color */
-.navbar a {
-    color: white;
-    text-decoration: none;
-    padding: 15px;
-    display: block;
-    text-align: right;
-}
-
-/* Navbar hover color */
-.navbar a:hover {
-    background-color: #7f0338;
-}
-
-/* Navbar text right */
-.navbar li {
-    float: right;
-}
-
-.logo {
-    padding-left: 20px;
-    padding-bottom: 5px;
-}
-
 .main {
     flex: 70%;
     padding-left: 20px;
     padding-top: 50px;
 }
 
-a {
-    color: BLACK;
-    text-decoration: none;
+.left-side {
+    text-align: center;
 }
 
-a:hover {
-    color: gray;
+.alert-form {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center the items horizontally */
+    gap: 15px; /* Add space between the elements */
+    width: 100%; /* Ensure it takes up the container's width */
+}
+
+.alert-form select,
+.alert-form textarea,
+.alert-form button {
+    width: 80%; /* Consistent width for all elements */
+    max-width: 400px; /* Prevent them from being too wide */
+}
+
+.alert-form select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.alert-form textarea {
+    resize: none; /* Prevent resizing */
+    height: 100px; /* Consistent height */
+}
+
+.alert-form button {
+    padding: 10px 20px;
+    background-color: #d30000;
+    color: white;
+    font-size: 16px;
     cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    transition: background-color 0.5s ease;
+}
+
+.alert-form button:hover {
+    background-color: #7f0338;
+}
+
+.alerts-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.alerts-list table {
+    margin: 0 auto; /* Center the table */
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.alerts-list th, .alerts-list td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ccc;
+}
+
+.alerts-list th {
+    background-color: #f9f9f9;
+    font-weight: bold;
 }
 
 .copyright {
     margin-left: auto;
     padding-left: 100px;
     padding-top: 100px;
+}
+
+.banner {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.banner img {
+    width: 100%;
+    height: auto;
+    display: block;
 }

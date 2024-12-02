@@ -6,8 +6,8 @@
     <title>Shelters - ShelterSafe</title>
     <link rel="stylesheet" href="/styles/shelters_style.css" />
     <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+            rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
     />
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPH6B4jd8jNc_azss5c1wkJKFCxa_n29o&loading=async&libraries=places"></script>
     <script src="/script/shelters_script.js"></script>
@@ -18,7 +18,7 @@
     <!-- Nav-bar.EJS-->
     <%- include('../partials/nav-bar') %>
 
-    <div class="container">
+
       <div class="row-container">
         <div class="left-side">
           <img src="/site_art/shelter_legend.jpg" alt="shelter_legend">
@@ -27,7 +27,7 @@
           <!-- #map container here -->
         </div>
       </div>
-    </div>
+
 
     <!-- Table to display nearby schools -->
     <h2>Nearby Facility Details</h2>
@@ -45,39 +45,9 @@
       </tbody>
     </table>
 
-    <table style="margin-top: 50px">
-      <thead>
-        <tr>
-          <th>Disaster Name</th>
-          <th>Shelter Name</th>
-          <th>Shelter Address</th>
-          <th>Occupancy</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% shelters.forEach(shelter => { %>
-        <tr>
-          <td><%= shelter.disaster_name %></td>
-          <td><%= shelter.shelter_name %></td>
-          <td><%= shelter.Shelter_address %></td>
-          <td><%= shelter.Current_Capacity %></td>
-          <td class="highlight">
-            <a
-              href="https://www.google.com/maps/dir/?api=1&destination=<%= encodeURIComponent(shelter.Shelter_address) %>"
-              target="_blank"
-            >
-              Get Directions
-            </a>
-          </td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-
     <footer class="copyright" style="color: black">
       <p>© 2024, ShelterSafe LLC</p>
     </footer>
-  </div>
+
   </body>
 </html>

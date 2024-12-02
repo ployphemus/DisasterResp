@@ -16,9 +16,10 @@
     <!-- Nav-bar.EJS-->
     <%- include('../partials/nav-bar') %>
 
-    <div class="container">
-      <h1 id="title">Alert Management</h1>
-
+    <div class="left-side">
+      <div class="banner">
+        <img src="/site_art/alert-banner.jpg" alt="alert" />
+      </div>
       <form
         class="alert-form"
         action="/notifications/create-notif-broadcast"
@@ -52,35 +53,38 @@
           name="Message"
           required
         ></textarea>
-        <button id="sendAlert" type="submit">Send Alert</button>
+        <button id="sendAlert" type="submit" class="btn btn-danger">
+          Send Alert
+        </button>
       </form>
 
-      <h2>Current Alerts</h2>
-      <div id="alertsList" class="alerts-list">
-        <!-- New alerts will be added here with current date and time -->
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Disaster Zone</th>
-              <th>Disaster Zone ID</th>
-              <th>Created By Admin</th>
-              <th>Message</th>
-              <th>Time Stamp</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% notifs.forEach((alert) => { %>
-            <tr>
-              <td><%= alert.notification_id %></td>
-              <td><%= alert.disasterzone_name %></td>
-              <td><%= alert.disasterzone_id %></td>
-              <td><%= alert.admin_id %></td>
-              <td><%= alert.Message %></td>
-            </tr>
-            <% }); %>
-          </tbody>
-        </table>
+      <div class="alerts-container">
+        <h2>Current Alerts</h2>
+        <div id="alertsList" class="alerts-list">
+          <!-- New alerts will be added here with current date and time -->
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Disaster Zone</th>
+                <th>Disaster Zone ID</th>
+                <th>Created By Admin</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% notifs.forEach((alert) => { %>
+              <tr>
+                <td><%= alert.notification_id %></td>
+                <td><%= alert.disasterzone_name %></td>
+                <td><%= alert.disasterzone_id %></td>
+                <td><%= alert.admin_id %></td>
+                <td><%= alert.Message %></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 

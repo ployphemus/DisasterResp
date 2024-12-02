@@ -20,15 +20,22 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -55,7 +62,22 @@ import com.google.gson.annotations.SerializedName
 import io.ktor.client.plugins.defaultRequest
 import kotlinx.coroutines.launch
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+
+import com.google.android.material.bottomnavigation.BottomNavigationView
+
 const val IS_DEVELOPMENT = true
+
+// Bottom nav items
+sealed class BottomNavItem(val route: String, val icon: Int, val label: String) {
+    object Shelters : BottomNavItem("ShelterListScreen", R.drawable.baseline_cabin_24, "Shelters")
+    object Floods : BottomNavItem("OnlineInfo", R.drawable.ss_flood, "Floods")
+    object Wildfires : BottomNavItem("WildfireScreen", R.drawable.ss_fire, "Wildfires")
+    object Earthquakes : BottomNavItem("EQInfo", R.drawable.ss_quake, "Earthquakes")
+}
 
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -116,7 +138,6 @@ class MainActivity : ComponentActivity() {
 fun AppWithLoginDialog(
     navController: NavHostController,
     fusedLocationClient: FusedLocationProviderClient
-
 ) {
     var showDialog by remember { mutableStateOf(true) }
     //val context = LocalContext.current
@@ -130,23 +151,56 @@ fun AppWithLoginDialog(
 
     if (!showDialog) {
         // Main app content
-        NavHost(navController = navController, startDestination = "ShelterListScreen") {
-            composable("ShelterListScreen") {
-                ShelterListScreen(
-                    navController = navController,
-                    fusedLocationClient = fusedLocationClient,
-                    onLogout = { showDialog = true } // Reopen login dialog
-                )
+        Box(modifier = Modifier.fillMaxSize()) {
+            // NavHost for navigation, with padding to leave space for BottomNavigationBar
+            NavHost(
+                navController = navController,
+                startDestination = "ShelterListScreen",
+                modifier = Modifier
+                    .fillMaxSize() // Take up the full screen
+                    .padding(bottom = 56.dp) // Leave space for the BottomNavigationBar
+            ) {
+                composable("ShelterListScreen") {
+                    ShelterListScreen(
+                        navController = navController,
+                        fusedLocationClient = fusedLocationClient,
+                        onLogout = { showDialog = true } //Reopen login dialog
+                    )
+                }
+                composable("OnlineInfo") {
+                    OnlineInfo(
+                        navController = navController,
+                        onLogout = { showDialog = true } //Reopen login dialog
+                    )
+                }
+                composable("EQinfo") {
+                    EQinfo(
+                        navController = navController,
+                        onLogout = { showDialog = true } //Reopen login dialog
+                    )
+                }
+                composable("WildfireScreen") {
+                    WildfireScreen(
+                        navController = navController,
+                        onLogout = { showDialog = true } //Reopen login dialog
+                    )
+                }
             }
-            composable("OnlineInfo") {
-                OnlineInfo(navController = navController)
-            }
-            composable("EQinfo") {
-                EQinfo(navController = navController)
-            }
-            composable("WildfireScreen") {
-                WildfireScreen(navController = navController)
-            }
+
+            // Bottom navigation bar placed at the bottom of the screen
+            BottomNavigationBar(
+                navController = navController,
+                items = listOf(
+                    BottomNavItem.Shelters,
+                    BottomNavItem.Floods,
+                    BottomNavItem.Wildfires,
+                    BottomNavItem.Earthquakes
+                ),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter) // Align it to the bottom center of the screen
+                    .fillMaxWidth() // Ensure the bottom navigation bar spans the full width of the screen
+                    .height(56.dp) // Ensure consistent height for the bottom navigation bar
+            )
         }
     }
 }
@@ -188,7 +242,7 @@ fun ShelterListScreen(
                 title = { Text("Available Shelters") },
                 navigationIcon = {
                     MenuButton(
-                        navController = navController, onLogout = onLogout
+                        onLogout = onLogout
                     )
                 }
             )
@@ -312,57 +366,29 @@ fun ShelterListItem(shelter: Shelter) {
 }
 
 @Composable
-fun MenuButton(navController: NavHostController, onLogout: () -> Unit) {
+fun MenuButton(onLogout: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    IconButton(onClick = { expanded = true }) {
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = "Menu"
-        )
-    }
-
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false }
-    ) {
-        DropdownMenuItem(
-            text = { Text("Local Flood Info") },
-            onClick = {
-                navController.navigate("OnlineInfo")
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Earthquake Info") },
-            onClick = {
-                navController.navigate("EQinfo")
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Wildfire Info") },
-            onClick = {
-                navController.navigate("WildfireScreen")
-                expanded = false
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Logout") },
-            onClick = {
-                expanded = false
-                // Perform logout action
-                coroutineScope.launch {
-                    val success = performLogout()
-                    if (success) {
-                        onLogout()
-                    } else {
-                        // Handle logout failure (e.g., show a message)
-                    }
+    Button(
+        onClick = {
+            expanded = false
+            // Perform logout action
+            coroutineScope.launch {
+                val success = performLogout()
+                if (success) {
+                    onLogout()
+                } else {
+                    // Handle logout failure (e.g., show a message)
                 }
             }
-        )
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFFFD3D1), // Background color (purple)
+            contentColor = Color.White // Text color (white)
+        ),
+    ) {
+        Text(text = "Logout")
     }
 }
 
@@ -560,6 +586,40 @@ suspend fun fetchShelters(): List<Shelter>? {
         null
     } finally {
         client.close()
+    }
+}
+
+// Structure of the bottom nav
+@Composable
+fun BottomNavigationBar(
+    navController: NavHostController,
+    items: List<BottomNavItem>,
+    modifier: Modifier = Modifier
+) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    BottomNavigation (
+        modifier = modifier,
+        backgroundColor = Color(0xFFD30000),
+        contentColor = Color.White
+    ){
+        items.forEach { item ->
+            BottomNavigationItem(
+                icon = { Icon(painterResource(id = item.icon), contentDescription = item.label) },
+                label = { Text(item.label) },
+                selected = currentRoute == item.route,
+                onClick = {
+                    navController.navigate(item.route) {
+                        // To avoid stack overflow issues, launch the top item only if not already selected
+                        if (currentRoute != item.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            )
+        }
     }
 }
 

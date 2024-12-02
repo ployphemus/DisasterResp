@@ -21,7 +21,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EQinfo(navController: NavHostController) {
+fun EQinfo(
+    navController: NavHostController,
+    onLogout: () -> Unit
+) {
     val coroutineScope = rememberCoroutineScope()
     var earthquakeData by remember { mutableStateOf<List<EarthquakeFeature>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -42,9 +45,9 @@ fun EQinfo(navController: NavHostController) {
             TopAppBar(
                 title = { Text("Recent Earthquakes in the US") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Go Back")
-                    }
+                    MenuButton(
+                        onLogout = onLogout
+                    )
                 }
             )
         }

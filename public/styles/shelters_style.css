@@ -1,97 +1,99 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
     color: BLACK;
 }
 
+/* General Navigation Bar Styling */
 .nav {
-    height: 50px;
     display: flex;
     align-items: center;
-    position: relative; /* Ensure this has a stacking context */
-    z-index: 10; /* Higher than the map */
-    margin-bottom: 10px;
+    justify-content: space-between; /* Ensures even spacing between logo and user buttons */
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+    margin: 0;
+}
+
+.nav .logo {
+    display: flex;
+    align-items: center; /* Vertically centers the logo */
+}
+
+.nav .logo img {
+    height: auto;
+    max-height: 75px; /* Restricts logo height */
 }
 
 .nav-right {
-    font-family: sans-serif;
     display: flex;
-    margin-left: auto;
+    align-items: center; /* Vertically aligns the buttons */
+    margin-left: auto; /* Pushes the user buttons to the far right */
 }
 
-.container {
+/* User Buttons Styling */
+.user-buttons {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+    gap: 10px; /* Adds space between buttons */
 }
 
-.row-container {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-}
-
-.shelter-info {
-    text-align: center;
-    width: 100%;
-    font-size: 30px;
-    padding: 20px 0;
-}
-
-.row {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.row:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-.logo {
-    padding-top: 10px;
-    padding-left: 20px;
-    padding-bottom: 5px;
-}
-
-/* Navbar base color */
-.navbar ul{
-    list-style-type: none;
-    background-color: #d30000;
-    padding: 0px;
-    margin-bottom: 10px;
-    overflow: hidden;
-}
-
-/* Navbar text color */
-.navbar a{
+.user-buttons button {
+    background-color: #007bff;
     color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.user-buttons button:hover {
+    background-color: #0056b3;
+}
+
+.user-buttons a {
     text-decoration: none;
-    padding: 15px;
-    display: block;
-    text-align: right;
+    color: inherit;
 }
 
-/* Navbar hover color */
-.navbar a:hover{
-    background-color: #7f0338;
+/* Main Nav Bar Links Styling */
+.navbar {
+    background-color: #444;
+    padding: 10px 20px;
+    margin: 0;
 }
 
-/* Navbar text right */
-.navbar li{
-    float: right;
+.navbar ul {
+    list-style-type: none;
+    display: flex;
+    gap: 15px;
+    padding: 0;
+    margin: 0;
 }
 
-.main {
-    flex: 1;
-    padding-left: 20px;
-    padding-top: 50px;
+.navbar li {
+    display: inline;
 }
 
+.navbar a {
+    text-decoration: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar a:hover {
+    background-color: #555;
+}
+
+/* Additional Styling for Consistency */
 a {
     color: BLACK;
     text-decoration: none;
@@ -112,6 +114,53 @@ button {
 
 button:hover {
     background-color: #ddd;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.row-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    width: 80%;
+    height: auto;
+
+}
+
+.shelter-info {
+    text-align: center;
+    width: 100%;
+    font-size: 30px;
+    padding: 20px 0;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.main {
+    flex: 1;
+    height: 74vh;
+    width: 50%;
+    margin: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
@@ -145,19 +194,51 @@ th {
     background-color: #f2f2f2;
 }
 
-#schools-table,
-table {
-    width: 90%;
-    margin: 20px auto;
+#schools-table {
+    width: 80%;
+    margin: 0 auto;
     border-collapse: collapse;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+#schools-table th, #schools-table td {
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 16px;
+}
 
+#schools-table th {
+    font-size: 18px;
+    background-color: #f2f2f2;
+}
+
+#schools-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+#shelter-table {
+    width: 100%;
+    margin: 0 auto;
+    border-collapse: collapse;
+}
+
+#shelter-table th, #shelter-table td {
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 16px;
+}
+
+#shelter-table th {
+    font-size: 18px;
+    background-color: #f2f2f2;
+}
+
+#shelter-table tr:hover {
+    background-color: #f9f9f9;
+}
 .left-side {
-    width: 15%;
-    margin: 20px auto;
-    padding-right: 30px;
+    flex: 1;
+    max-width: 15%;
+    margin-left: 100px;
 }
 
 tbody tr:nth-child(odd) {
@@ -169,9 +250,10 @@ tbody tr:nth-child(odd) {
 }
 
 #map {
-    height: 72vh;
-    width: 80%;
-    margin: 20px auto;
+    flex: 1;
+    height: 74vh;
+    width: 50%;
+    margin-left: 80px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

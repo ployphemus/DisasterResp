@@ -32,7 +32,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OnlineInfo(navController: NavHostController) {
+fun OnlineInfo(
+    navController: NavHostController,
+    onLogout: () -> Unit
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var streamData by remember { mutableStateOf<List<TimeSeries>>(emptyList()) }
@@ -106,9 +109,9 @@ fun OnlineInfo(navController: NavHostController) {
             TopAppBar(
                 title = { Text("Stream Monitors") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Go Back")
-                    }
+                    MenuButton(
+                        onLogout = onLogout
+                    )
                 }
             )
         }
