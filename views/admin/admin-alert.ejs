@@ -53,7 +53,9 @@
           name="Message"
           required
         ></textarea>
-        <button id="sendAlert" type="submit" class="btn btn-danger">Send Alert</button>
+        <button id="sendAlert" type="submit" class="btn btn-danger">
+          Send Alert
+        </button>
       </form>
 
       <div class="alerts-container">
@@ -62,17 +64,16 @@
           <!-- New alerts will be added here with current date and time -->
           <table>
             <thead>
-            <tr>
-              <th>ID</th>
-              <th>Disaster Zone</th>
-              <th>Disaster Zone ID</th>
-              <th>Created By Admin</th>
-              <th>Message</th>
-              <th>Time Stamp</th>
-            </tr>
+              <tr>
+                <th>ID</th>
+                <th>Disaster Zone</th>
+                <th>Disaster Zone ID</th>
+                <th>Created By Admin</th>
+                <th>Message</th>
+              </tr>
             </thead>
             <tbody>
-            <% notifs.forEach((alert) => { %>
+              <% notifs.forEach((alert) => { %>
               <tr>
                 <td><%= alert.notification_id %></td>
                 <td><%= alert.disasterzone_name %></td>
@@ -80,7 +81,7 @@
                 <td><%= alert.admin_id %></td>
                 <td><%= alert.Message %></td>
               </tr>
-            <% }); %>
+              <% }); %>
             </tbody>
           </table>
         </div>
