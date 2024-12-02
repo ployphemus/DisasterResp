@@ -14,27 +14,33 @@ body {
 .nav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-between; /* Ensures even spacing between logo and user buttons */
     padding: 10px 20px;
     background-color: #333;
     color: white;
     margin: 0;
 }
 
+.nav .logo {
+    display: flex;
+    align-items: center; /* Vertically centers the logo */
+}
+
 .nav .logo img {
     height: auto;
-    max-height: 75px;
+    max-height: 75px; /* Restricts logo height */
 }
 
 .nav-right {
     display: flex;
-    align-items: center;
+    align-items: center; /* Vertically aligns the buttons */
+    margin-left: auto; /* Pushes the user buttons to the far right */
 }
 
 /* User Buttons Styling */
 .user-buttons {
     display: flex;
-    gap: 10px; /* Adds space between Logout and User Page buttons */
+    gap: 10px; /* Adds space between buttons */
 }
 
 .user-buttons button {
@@ -66,7 +72,7 @@ body {
 .navbar ul {
     list-style-type: none;
     display: flex;
-    gap: 15px; /* Adds space between menu items */
+    gap: 15px;
     padding: 0;
     margin: 0;
 }
@@ -85,6 +91,29 @@ body {
 
 .navbar a:hover {
     background-color: #555;
+}
+
+/* Additional Styling for Consistency */
+a {
+    color: BLACK;
+    text-decoration: none;
+}
+
+a:hover {
+    color: gray;
+    cursor: pointer;
+}
+
+button {
+    border: none;
+    border-radius: 5px;
+    padding: 15px 30px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #ddd;
 }
 
 
@@ -135,28 +164,6 @@ body {
     padding-top: 25px;
     margin: auto;
     width: 75%;
-}
-
-a {
-    color: BLACK;
-    text-decoration: none;
-}
-
-a:hover {
-    color: gray;
-    cursor: pointer;
-}
-
-button {
-    border: none;
-    border-radius: 5px;
-    padding: 15px 30px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #ddd;
 }
 
 #about {
